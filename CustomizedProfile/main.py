@@ -23,6 +23,7 @@ from model import Wave, mse_f, mse_0, mse_b, rel_error
 from datagen import initial_point, bc_point, collocation_point, mesh_point
 
 iter = 0
+count = 1
 seed = 42
 final_loss = 0
 final_relerr = 0
@@ -46,6 +47,7 @@ def closure(model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, s
     global iter
     global final_loss
     global final_relerr
+    global count
     optimizer.zero_grad()
     # evaluating the MSE for the PDE
     msef = mse_f(model, x_f, t_f, u_f)
@@ -68,8 +70,9 @@ def closure(model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, s
     slice = np.concatenate((np.arange(0,10,1), np.arange(10,100,10), np.arange(100,1100,100)))
     if iter in slice:
         fig = plot(model, device, iter)
-        fig.savefig("./outputpics/" + 'iter:'+str(iter) + '.png')
+        fig.savefig("./outputpics/" + 'pic-'+str(count) + '.png')
         plt.close('all')
+        count+=1
     return loss
 
 
