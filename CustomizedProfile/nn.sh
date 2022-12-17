@@ -1,0 +1,24 @@
+for epoch in {500..1500..250}
+do
+  for lr in 0.01 0.1 0.5 1 2 5
+  do
+    python main.py --layer 4 --neurons 40 --initpts 50 --bcpts 50 --colpts 5000 --epochs $epoch --lr $lr
+  done
+done
+
+#for layer in {2..10..2}
+#do
+#  for neurons in {10..90..20}
+#  do
+#    python main.py --layer $layer --neurons $neurons --initpts 50 --bcpts 50 --colpts 5000 --epochs 1000 --lr 1
+#  done
+#done
+
+
+#for initpts in {30..70..10}
+#do
+#  for colpts in {1000..9000..2000}
+#  do
+#    python main.py --layer 4 --neurons 40 --initpts $initpts --bcpts $initpts --colpts $colpts --epochs 1000 --lr 1
+#  done
+#done
