@@ -40,7 +40,7 @@ parser.add_argument('--bcpts', help='number of boundary points', type=int, defau
 parser.add_argument('--colpts', help='number of collocation points', type=int, default=9000)
 parser.add_argument('--epochs', help='number of epochs', type=int, default=1000)
 parser.add_argument('--lr', help='learning rate', type=float, default=1)
-parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
+parser.add_argument('--method', help='optimization method', type=str, default='adam')
 
 
 def closure(model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary):
