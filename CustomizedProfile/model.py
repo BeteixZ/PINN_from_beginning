@@ -20,7 +20,7 @@ class Wave(nn.Module):
     it consists of 5 hidden layers
     """
 
-    def __init__(self, layer: int = 5, neurons: int = 20):
+    def __init__(self, layer: int = 5, neurons: int = 20, act: str = 'tanh'):
         # Input layer
         super(Wave, self).__init__()
         self.linear_in = nn.Linear(2, neurons)
@@ -31,7 +31,16 @@ class Wave(nn.Module):
             [nn.Linear(neurons, neurons) for i in range(layer)]
         )
         # Activation function
-        self.act = nn.Tanh()  # How about LeakyReLU? Or even Swish?
+        if act == 'tanh':
+            self.act = nn.Tanh()  # How about LeakyReLU? Or even Swish?
+        elif act == 'gelu':
+            self.act = nn.GELU()
+        elif act == 'Tanhshrink':
+            self.act = nn.Tanhshrink()
+        elif act == 'mish':
+            self.act = nn.Mish()
+        elif act == 'softplus':
+            self.act = nn.Softplus()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.linear_in(x)

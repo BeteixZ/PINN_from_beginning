@@ -40,7 +40,8 @@ parser.add_argument('--bcpts', help='number of boundary points', type=int, defau
 parser.add_argument('--colpts', help='number of collocation points', type=int, default=9000)
 parser.add_argument('--epochs', help='number of epochs', type=int, default=1000)
 parser.add_argument('--lr', help='learning rate', type=float, default=1)
-parser.add_argument('--method', help='optimization method', type=str, default='adam')
+parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
+parser.add_argument('--act', help='activation function', type=str, default='mish')
 
 
 def closure(model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary):
@@ -130,9 +131,9 @@ def main():
     set_seed(seed)
     args = parser.parse_args()
     args_summary(args)
-    summary = SummaryWriter(comment='NN' + 'l'+str(args.layer)+'_n'+str(args.neurons)+'_i' + str(args.initpts) + '_b' + str(args.bcpts)+'_col'+str(args.colpts)+'-'+str(args.method))
+    summary = SummaryWriter(comment= 'l'+str(args.layer)+'_n'+str(args.neurons)+'_i' + str(args.initpts) + '_b' + str(args.bcpts)+'_col'+str(args.colpts/1000)+'-'+str(args.method)+'-'+str(args.act))
     time_start = time.time()
-    model = Wave(args.layer, args.neurons).to(device)
+    model = Wave(args.layer, args.neurons, args.act).to(device)
     model.apply(init_weights)
     x_ic, t_ic, u_ic = initial_point(args.initpts, seed)
     l_t_bc, u_t_bc = bc_point(args.bcpts, seed)
