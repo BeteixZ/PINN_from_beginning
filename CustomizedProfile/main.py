@@ -21,7 +21,7 @@ from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR, ExponentialLR
 from torch.utils.tensorboard import SummaryWriter
 
 from functional import set_seed, init_weights, args_summary, plot, plot_with_points, make_gif, plot_slice, plot_error
-from model import Wave, mse_f, mse_0, mse_b, rel_error, mse_data, seq_model
+from model import Wave, mse_f, mse_0, mse_b, rel_error, mse_data
 from datagen import initial_point, bc_point, collocation_point, mesh_point
 
 iter = 0
@@ -41,7 +41,7 @@ parser.add_argument('--colpts', help='number of collocation points', type=int, d
 parser.add_argument('--epochs', help='number of epochs', type=int, default=1000)
 parser.add_argument('--lr', help='learning rate', type=float, default=1)
 parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
-parser.add_argument('--act', help='activation function', type=str, default='mish')
+parser.add_argument('--act', help='activation function', type=str, default='sigmoid')
 
 
 def closure(model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary):
@@ -69,7 +69,7 @@ def closure(model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, s
     iter += 1
     final_loss = loss
     final_relerr = relerror
-    if iter % 50 == 0:
+    if iter % 1 == 0:
         print(f"[Iter: {iter}] loss: {loss.item()}, msef:{msef}, mse0:{mse0}, mseb:{mseb}, relerr:{relerror}")
     slice = np.concatenate((np.arange(0,10,1), np.arange(10,100,10), np.arange(100,1100,100)))
     if iter in slice:
@@ -89,11 +89,13 @@ def train(model, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, epochs, lr, me
                                     max_iter=epochs,
                                     max_eval=epochs,
                                     history_size=100,
-                                    tolerance_grad=0.5 * np.finfo(float).eps,
-                                    tolerance_change=0.5 * np.finfo(float).eps,
+                                    #tolerance_grad=0.01 * np.finfo(float).eps,
+                                    tolerance_change=0,
                                     line_search_fn="strong_wolfe")
         closure_fn = partial(closure, model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary)
         optimizer.step(closure_fn)
+
+
     if method == 'adam':
         optimizer = torch.optim.Adam(model.parameters(), lr=0.02)
         schedule2 = ExponentialLR(optimizer, gamma= 0.9995)
@@ -138,9 +140,9 @@ def main():
     x_ic, t_ic, u_ic = initial_point(args.initpts, seed)
     l_t_bc, u_t_bc = bc_point(args.bcpts, seed)
     x_f, t_f, u_f = collocation_point(args.colpts, seed)
-    x_ic = Variable(torch.from_numpy(x_ic.astype(np.float32)), requires_grad=True).to(device)
-    t_ic = Variable(torch.from_numpy(t_ic.astype(np.float32)), requires_grad=True).to(device)
-    u_ic = Variable(torch.from_numpy(u_ic.astype(np.float32)), requires_grad=True).to(device)
+    x_ic = Variable(torch.from_numpy(x_ic.astype(np.float32)), requires_grad=False).to(device)
+    t_ic = Variable(torch.from_numpy(t_ic.astype(np.float32)), requires_grad=False).to(device)
+    u_ic = Variable(torch.from_numpy(u_ic.astype(np.float32)), requires_grad=False).to(device)
     l_t_bc = Variable(torch.from_numpy(l_t_bc.astype(np.float32)), requires_grad=True).to(device)
     u_t_bc = Variable(torch.from_numpy(u_t_bc.astype(np.float32)), requires_grad=False).to(device)
     x_f = Variable(torch.from_numpy(x_f.astype(np.float32)), requires_grad=True).to(device)
