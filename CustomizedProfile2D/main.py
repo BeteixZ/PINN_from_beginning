@@ -37,18 +37,19 @@ final_relerr = 0
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--layer', help='number of layers', type=int, default=6)
-parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=80)
+parser.add_argument('--layer', help='number of layers', type=int, default=8)
+parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=120)
 parser.add_argument('--initpts', help='number of init points pper layer', type=int, default=200)
-parser.add_argument('--bcpts', help='number of boundary points', type=int, default=300)
-parser.add_argument('--colpts', help='number of collocation points', type=int, default=17000)
-parser.add_argument('--epochs', help='number of epochs', type=int, default=1200)
+parser.add_argument('--bcpts', help='number of boundary points', type=int, default=200)
+parser.add_argument('--colpts', help='number of collocation points', type=int, default=30000)
+parser.add_argument('--epochs', help='number of epochs', type=int, default=1400)
 parser.add_argument('--lr', help='learning rate', type=float, default=1)
 parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
-parser.add_argument('--act', help='activation function', type=str, default='mish')
+parser.add_argument('--act', help='activation function', type=str, default='gelu')
+parser.add_argument('--save', help='save model', type=bool, default=False)
 
 
-def closure(model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary):
+def closure(model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch):
     """
     The closure function to use L-BFGS optimization method.
     """
@@ -74,7 +75,7 @@ def closure(model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc,
     iter += 1
     final_loss = loss
     final_relerr = relerror
-    if iter % 200 == 0:
+    if iter % 10 == 0:
         print(f"[Iter: {iter}] loss: {loss.item()}, msef:{msef}, mse0:{mse0}, mseb:{mseb}, relerr:{relerror}")
     # slice = np.concatenate((np.arange(0, 10, 1), np.arange(10, 100, 10), np.arange(100, 1100, 100)))
     # if iter in slice:
@@ -82,64 +83,66 @@ def closure(model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc,
     #    fig.savefig("./outputpics/" + 'pic-' + str(count) + '.png')
     #    plt.close('all')
     #    count += 1
-    if iter == 1200:
+    if iter == epoch + 200:
         for time in [0, 0.25, 0.5, 0.75, 1.0]:
-            fig = plot_t(model, device, iter, time)
-            fig.savefig("./outputpics/" + 'final_pic-' + str(time) + '.png')
+            fig = plot_t(model, device, iter, time, True)
+            fig.savefig("./outputpics/" + 'final_pic-' + str(time) + '.pdf')
             plt.close('all')
     return loss
 
 
-def train(model, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, epochs, lr, method, summary):
+def train(model, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, epochs, lr, method, summary, epoch):
     # Initialize the optimizer
 
     if method == 'lbfgs':
-        global iter
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
-        for i in range(200):
-            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary)
-            optimizer.step(closure_fn)
+        #global iter
+        #optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
+        #print("Start training: ADAM")
+        #for i in range(200):
+        #    closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
+        #    optimizer.step(closure_fn)
 
+        print("Start training: L-BFGS")
         optimizer = torch.optim.LBFGS(model.parameters(),
                                       lr=lr,
-                                      max_iter=epochs,
-                                      max_eval=epochs,
+                                      max_iter=epochs,#-200,
+                                      max_eval=epochs,#-200,
                                       history_size=50,
                                       # tolerance_grad=0.01 * np.finfo(float).eps,
                                       tolerance_change=0,
                                       line_search_fn="strong_wolfe")
-        closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary)
+        closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
         optimizer.step(closure_fn)
 
     if method == 'adam':
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.02)
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
         schedule2 = ExponentialLR(optimizer, gamma=0.9995)
         for i in range(epochs):
-            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary)
+            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
             optimizer.step(closure_fn)
             schedule2.step()
 
     if method == 'sgd':
-        optimizer = torch.optim.SGD(model.parameters(), lr=0.0001)
+        optimizer = torch.optim.SGD(model.parameters(), lr=0.00002)
         schedule2 = ExponentialLR(optimizer, gamma=0.999)
         for i in range(epochs):
-            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary)
+            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
             optimizer.step(closure_fn)
             schedule2.step()
 
     if method == 'ada':
-        optimizer = torch.optim.Adagrad(model.parameters(), lr=0.02)
-        schedule2 = ExponentialLR(optimizer, gamma=0.999)
+        optimizer = torch.optim.Adagrad(model.parameters(), lr=0.05)
+        schedule2 = ExponentialLR(optimizer, gamma=0.995)
         for i in range(epochs):
-            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary)
+            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
             optimizer.step(closure_fn)
             schedule2.step()
 
     if method == 'rmsprop':
-        optimizer = torch.optim.RMSprop(model.parameters(), lr=0.002)
+        optimizer = torch.optim.RMSprop(model.parameters(), lr=0.01)
         schedule2 = ExponentialLR(optimizer, gamma=0.995)
         for i in range(epochs):
-            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary)
+            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
             optimizer.step(closure_fn)
             schedule2.step()
 
@@ -155,19 +158,21 @@ def main():
     x_ic, y_ic, t_ic = initial_point(args.initpts, seed)
     x_bc, y_bc, t_bc = bc_point(args.bcpts, seed)
     x_f, y_f, t_f = collocation_point(args.colpts, seed)
-    x_ic = Variable(torch.from_numpy(x_ic.astype(np.float32)), requires_grad=True).to(device)
-    y_ic = Variable(torch.from_numpy(y_ic.astype(np.float32)), requires_grad=True).to(device)
-    t_ic = Variable(torch.from_numpy(t_ic.astype(np.float32)), requires_grad=True).to(device)
+    x_ic = Variable(torch.from_numpy(x_ic.astype(np.float32)), requires_grad=False).to(device)
+    y_ic = Variable(torch.from_numpy(y_ic.astype(np.float32)), requires_grad=False).to(device)
+    t_ic = Variable(torch.from_numpy(t_ic.astype(np.float32)), requires_grad=False).to(device)
     x_bc = Variable(torch.from_numpy(x_bc.astype(np.float32)), requires_grad=True).to(device)
     y_bc = Variable(torch.from_numpy(y_bc.astype(np.float32)), requires_grad=True).to(device)
     t_bc = Variable(torch.from_numpy(t_bc.astype(np.float32)), requires_grad=False).to(device)
     x_f = Variable(torch.from_numpy(x_f.astype(np.float32)), requires_grad=True).to(device)
     y_f = Variable(torch.from_numpy(y_f.astype(np.float32)), requires_grad=True).to(device)
     t_f = Variable(torch.from_numpy(t_f.astype(np.float32)), requires_grad=True).to(device)
-    train(model, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, args.epochs, args.lr, args.method, summary)
+    train(model, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, args.epochs, args.lr, args.method, summary, args.epochs)
     summary.add_hparams(vars(args), {'loss':final_loss, 'rel_error':final_relerr*100})
     time_end = time.time()
     print('time cost', time_end - time_start, 's')
+    if args.save:
+        torch.save(model.state_dict(), './models/'+'l'+str(args.layer)+'_n'+str(args.neurons)+'_i' + str(args.initpts) + '_b' + str(args.bcpts)+'_col'+str(args.colpts/1000)+'-'+str(args.method)+'-'+str(args.act)+'.pt')
     #make_gif()
     #plot_slice(model, summary, device)
     #plot_error(model, summary, device)

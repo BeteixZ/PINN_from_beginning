@@ -53,7 +53,7 @@ def args_summary(args):
     print(args)
 
 
-def plot_t(model, device, iter, t_time):
+def plot_t(model, device, iter, t_time, colorbar):
     x = np.arange(0, 1, 0.005)
     y = np.arange(0, 1, 0.005)
     ms_x, ms_y = np.meshgrid(x, y)
@@ -70,9 +70,12 @@ def plot_t(model, device, iter, t_time):
     ms_u = u.reshape(ms_x.shape)
 
     fig = plt.figure()
-    pc = plt.pcolormesh(ms_x, ms_y, ms_u, cmap=plt.get_cmap("rainbow"), linewidth=0)
-    plt.title('Iteration:'+str(iter))
-    fig.colorbar(pc)
+    plt.gca().set_aspect('equal')
+    pc = plt.pcolormesh(ms_x, ms_y, ms_u, cmap=plt.get_cmap("rainbow"), linewidth=0, antialiased= True, )
+    pc.set_clim(-1,1)
+    plt.title('Iteration:'+str(iter)+'  Time:'+str(t_time))
+    if colorbar:
+        fig.colorbar(pc)
     return fig
 
 

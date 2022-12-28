@@ -24,15 +24,6 @@ def initial_point(size, seed: int = 42):
 
 def bc_point(size, seed: int = 42):
     set_seed(seed)
-    #lb = np.array([0.0, 0.0])
-    #ub = np.array([1.0, 1.0])
-    #x_bc = np.zeros((size, size))
-    #y_bc = np.zeros((size, size))
-    #for i in range(size):
-    #    i_f = lb + (ub - lb) * lhs(2, size) # use Latin hyper sampling
-    #    x_bc[i] = i_f[:, 0]
-    #    y_bc[i] = i_f[:, 1]
-    #t_bc = lhs(1, size)
     lb = np.array([0.0, 0.0, 0.0])
     ub = np.array([1.0, 1.0, 1.0])
     c_f = lb + (ub - lb) * lhs(3, size)

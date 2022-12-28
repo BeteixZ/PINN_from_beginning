@@ -34,15 +34,15 @@ class Wave(nn.Module):
         )
         # Activation function
         if act == 'tanh':
-            self.act = nn.Tanh()  # How about LeakyReLU? Or even Swish?
+            self.act = nn.Tanh()
         elif act == 'gelu':
             self.act = nn.GELU()
         elif act == 'mish':
             self.act = nn.Mish()
         elif act == 'softplus':
             self.act = nn.Softplus()
-        elif act == 'silu':
-            self.act = nn.SiLU()
+        elif act == 'relu':
+            self.act = nn.ReLU()
         elif act == 'sigmoid':
             self.act = nn.Sigmoid()
         else:
