@@ -24,6 +24,10 @@ from functional import set_seed, init_weights, args_summary, plot, plot_with_poi
 from model import Wave, mse_f, mse_0, mse_b, rel_error, mse_data
 from datagen import initial_point, bc_point, collocation_point, mesh_point
 
+
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+
 iter = 0
 count = 1
 seed = 42

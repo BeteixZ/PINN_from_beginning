@@ -64,7 +64,7 @@ def f(model, x_f, y_f, t_f):
     u_t = derivative(u, t_f, order=1)
     u_xx = derivative(u, x_f, order=2)
     u_yy = derivative(u, y_f, order=2)
-    u_f = 8*pi**2*exp(-t_f)*sin(2*pi*x_f)*sin(2*pi*y_f)-exp(-t_f)*sin(2*pi*x_f)*sin(2*pi*y_f)
+    u_f = ((8*pi**2)-1)*exp(-t_f)*sin(2*pi*x_f)*sin(2*pi*y_f)
     return u_t - u_xx - u_yy - u_f
 
 
@@ -96,22 +96,45 @@ def mse_b(model, x_bc, y_bc, t_bc):
     y_bc_diri = torch.ones_like(x_bc)
     y_bc_diri.requires_grad = True
     u_bc_diri = torch.cat((model(torch.stack((x_bc_diri, y_bc, t_bc), axis=1))[:, 0],
-                             model(torch.stack((x_bc, y_bc_diri, t_bc), axis=1))[:, 0]))
+                           model(torch.stack((x_bc, y_bc_diri, t_bc), axis=1))[:, 0]))
     mse_dirichlet = (u_bc_diri ** 2).mean()
-
     x_bc_nuem = torch.ones_like(y_bc)
     x_bc_nuem.requires_grad = True
     y_bc_nuem = torch.zeros_like(x_bc)
     y_bc_nuem.requires_grad = True
-    u_bc_nuem_x = model(torch.stack((x_bc_nuem, y_bc, t_bc), axis =1))[:,0]
-    u_bc_nuem_y = model(torch.stack((x_bc, y_bc_nuem, t_bc), axis = 1))[:,0]
+    u_bc_nuem_x = model(torch.stack((x_bc_nuem, y_bc, t_bc), axis=1))[:, 0]
+    u_bc_nuem_y = model(torch.stack((x_bc, y_bc_nuem, t_bc), axis=1))[:, 0]
     u_x = derivative(u_bc_nuem_x, x_bc_nuem, 1)
     u_y = derivative(u_bc_nuem_y, y_bc_nuem, 1)
-    u_x_0 = 2*pi*exp(-t_bc)*sin(2*pi*y_bc)
-    u_y_0 = 2*pi*exp(-t_bc)*sin(2*pi*x_bc)
-    mse_neumann = ((u_x - u_x_0)**2).mean() + ((u_y-u_y_0)**2).mean()
-
+    u_x_0 = 2 * pi * exp(-t_bc) * sin(2 * pi * y_bc)
+    u_y_0 = 2 * pi * exp(-t_bc) * sin(2 * pi * x_bc)
+    mse_neumann = ((u_x - u_x_0) ** 2).mean() + ((u_y - u_y_0) ** 2).mean()
     return mse_dirichlet + mse_neumann
+
+
+    #for i,t in enumerate(t_bc):
+    #    t = torch.ones_like(x_bc[i]) * t
+    #    x_bc_diri = torch.zeros_like(y_bc[i])
+    #    x_bc_diri.requires_grad = True
+    #    y_bc_diri = torch.ones_like(x_bc[i])
+    #    y_bc_diri.requires_grad = True
+    #    u_bc_diri = torch.cat((model(torch.stack((x_bc_diri, y_bc[i], t), axis=1))[:, 0],
+    #                             model(torch.stack((x_bc[i], y_bc_diri, t), axis=1))[:, 0]))
+    #    mse_dirichlet = (u_bc_diri ** 2).mean()
+#
+    #    x_bc_nuem = torch.ones_like(y_bc[i])
+    #    x_bc_nuem.requires_grad = True
+    #    y_bc_nuem = torch.zeros_like(x_bc[i])
+    #    y_bc_nuem.requires_grad = True
+    #    u_bc_nuem_x = model(torch.stack((x_bc_nuem, y_bc[i], t), axis = 1))[:,0]
+    #    u_bc_nuem_y = model(torch.stack((x_bc[i], y_bc_nuem, t), axis = 1))[:,0]
+    #    u_x = derivative(u_bc_nuem_x, x_bc_nuem, 1)
+    #    u_y = derivative(u_bc_nuem_y, y_bc_nuem, 1)
+    #    u_x_0 = 2*pi*exp(-t)*sin(2*pi*y_bc[i])
+    #    u_y_0 = 2*pi*exp(-t)*sin(2*pi*x_bc[i])
+    #    mse_neumann = ((u_x - u_x_0)**2).mean() + ((u_y-u_y_0)**2).mean()
+#
+    #    return mse_dirichlet + mse_neumann
 
 
 def mse_data(model, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc):

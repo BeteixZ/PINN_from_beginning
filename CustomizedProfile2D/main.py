@@ -9,6 +9,9 @@ This file contains the main code for PINN including adjustable
 Every run writes to TensorBoard file.、
 """
 
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,7 +24,7 @@ from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR, ExponentialLR
 from torch.utils.tensorboard import SummaryWriter
 
 from functional import set_seed, init_weights, \
-    args_summary  # , plot, plot_with_points, make_gif, plot_slice, plot_error
+    args_summary, plot_t#, plot_with_points, make_gif, plot_slice, plot_error
 from model import Wave, mse_f, mse_0, mse_b, rel_error, mse_data
 from datagen import initial_point, bc_point, collocation_point, mesh_point
 
@@ -34,12 +37,12 @@ final_relerr = 0
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--layer', help='number of layers', type=int, default=10)
-parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=50)
-parser.add_argument('--initpts', help='number of init points pper layer', type=int, default=100)
-parser.add_argument('--bcpts', help='number of boundary points', type=int, default=100)
-parser.add_argument('--colpts', help='number of collocation points', type=int, default=10000)
-parser.add_argument('--epochs', help='number of epochs', type=int, default=2000)
+parser.add_argument('--layer', help='number of layers', type=int, default=6)
+parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=80)
+parser.add_argument('--initpts', help='number of init points pper layer', type=int, default=200)
+parser.add_argument('--bcpts', help='number of boundary points', type=int, default=300)
+parser.add_argument('--colpts', help='number of collocation points', type=int, default=17000)
+parser.add_argument('--epochs', help='number of epochs', type=int, default=1200)
 parser.add_argument('--lr', help='learning rate', type=float, default=1)
 parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
 parser.add_argument('--act', help='activation function', type=str, default='mish')
@@ -71,7 +74,7 @@ def closure(model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc,
     iter += 1
     final_loss = loss
     final_relerr = relerror
-    if iter % 1 == 0:
+    if iter % 200 == 0:
         print(f"[Iter: {iter}] loss: {loss.item()}, msef:{msef}, mse0:{mse0}, mseb:{mseb}, relerr:{relerror}")
     # slice = np.concatenate((np.arange(0, 10, 1), np.arange(10, 100, 10), np.arange(100, 1100, 100)))
     # if iter in slice:
@@ -79,6 +82,11 @@ def closure(model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc,
     #    fig.savefig("./outputpics/" + 'pic-' + str(count) + '.png')
     #    plt.close('all')
     #    count += 1
+    if iter == 1200:
+        for time in [0, 0.25, 0.5, 0.75, 1.0]:
+            fig = plot_t(model, device, iter, time)
+            fig.savefig("./outputpics/" + 'final_pic-' + str(time) + '.png')
+            plt.close('all')
     return loss
 
 
@@ -86,11 +94,17 @@ def train(model, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, epochs, lr, 
     # Initialize the optimizer
 
     if method == 'lbfgs':
+        global iter
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
+        for i in range(200):
+            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary)
+            optimizer.step(closure_fn)
+
         optimizer = torch.optim.LBFGS(model.parameters(),
                                       lr=lr,
                                       max_iter=epochs,
                                       max_eval=epochs,
-                                      history_size=100,
+                                      history_size=50,
                                       # tolerance_grad=0.01 * np.finfo(float).eps,
                                       tolerance_change=0,
                                       line_search_fn="strong_wolfe")

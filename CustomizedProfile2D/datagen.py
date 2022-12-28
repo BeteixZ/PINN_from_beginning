@@ -24,16 +24,28 @@ def initial_point(size, seed: int = 42):
 
 def bc_point(size, seed: int = 42):
     set_seed(seed)
-    x_bc = np.random.uniform(low=0, high= 1, size = size)
-    y_bc = np.random.uniform(low=0, high= 1, size = size)
-    t_bc = np.random.uniform(low=0, high= 1, size = size)
+    #lb = np.array([0.0, 0.0])
+    #ub = np.array([1.0, 1.0])
+    #x_bc = np.zeros((size, size))
+    #y_bc = np.zeros((size, size))
+    #for i in range(size):
+    #    i_f = lb + (ub - lb) * lhs(2, size) # use Latin hyper sampling
+    #    x_bc[i] = i_f[:, 0]
+    #    y_bc[i] = i_f[:, 1]
+    #t_bc = lhs(1, size)
+    lb = np.array([0.0, 0.0, 0.0])
+    ub = np.array([1.0, 1.0, 1.0])
+    c_f = lb + (ub - lb) * lhs(3, size)
+    x_bc = c_f[:, 0]
+    y_bc = c_f[:, 1]
+    t_bc = c_f[:, 2]
     return x_bc, y_bc, t_bc
 
 
 def collocation_point(size, seed: int = 42):
     set_seed(seed)
     lb = np.array([0.0, 0.0, 0.0])
-    ub = np.array([1.0, 1.0, 0.0])
+    ub = np.array([1.0, 1.0, 1.0])
     c_f = lb + (ub - lb) * lhs(3, size)
     x_f = c_f[:, 0]
     y_f = c_f[:, 1]
