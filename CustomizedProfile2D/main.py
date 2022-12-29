@@ -37,15 +37,15 @@ final_relerr = 0
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--layer', help='number of layers', type=int, default=8)
-parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=120)
+parser.add_argument('--layer', help='number of layers', type=int, default=6)
+parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=60)
 parser.add_argument('--initpts', help='number of init points pper layer', type=int, default=200)
 parser.add_argument('--bcpts', help='number of boundary points', type=int, default=200)
 parser.add_argument('--colpts', help='number of collocation points', type=int, default=30000)
 parser.add_argument('--epochs', help='number of epochs', type=int, default=1400)
 parser.add_argument('--lr', help='learning rate', type=float, default=1)
-parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
-parser.add_argument('--act', help='activation function', type=str, default='gelu')
+parser.add_argument('--method', help='optimization method', type=str, default='sgd')
+parser.add_argument('--act', help='activation function', type=str, default='mish')
 parser.add_argument('--save', help='save model', type=bool, default=False)
 
 
@@ -95,12 +95,12 @@ def train(model, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, epochs, lr, 
     # Initialize the optimizer
 
     if method == 'lbfgs':
-        #global iter
-        #optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
-        #print("Start training: ADAM")
-        #for i in range(200):
-        #    closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
-        #    optimizer.step(closure_fn)
+        global iter
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
+        print("Start training: ADAM")
+        for i in range(200):
+            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
+            optimizer.step(closure_fn)
 
         print("Start training: L-BFGS")
         optimizer = torch.optim.LBFGS(model.parameters(),
@@ -123,9 +123,16 @@ def train(model, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, epochs, lr, 
             schedule2.step()
 
     if method == 'sgd':
+        global iter
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
+        print("Start training: ADAM")
+        for i in range(200):
+            closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
+            optimizer.step(closure_fn)
+
         optimizer = torch.optim.SGD(model.parameters(), lr=0.00002)
         schedule2 = ExponentialLR(optimizer, gamma=0.999)
-        for i in range(epochs):
+        for i in range(epochs-200):
             closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch)
             optimizer.step(closure_fn)
             schedule2.step()

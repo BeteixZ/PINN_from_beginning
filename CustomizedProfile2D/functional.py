@@ -79,76 +79,55 @@ def plot_t(model, device, iter, t_time, colorbar):
     return fig
 
 
-def plot_slice(model, summary, device):
-    plt.rcParams["figure.autolayout"] = True
-    x = np.arange(0, 1, 0.01)
-    t = np.arange(0, 1, 0.01)
-    ms_x, ms_t = np.meshgrid(x, t)
+def plot_t_error(model, device, iter, t_time, colorbar):
+    x = np.arange(0, 1, 0.005)
+    y = np.arange(0, 1, 0.005)
+    ms_x, ms_y = np.meshgrid(x, y)
+    # Just because meshgrid is used, we need to do the following adjustment
     x = np.ravel(ms_x).reshape(-1, 1)
-    t = np.ravel(ms_t).reshape(-1, 1)
+    y = np.ravel(ms_y).reshape(-1, 1)
+    t = np.zeros_like(y)+t_time
+    real_u = (np.exp(-t)*np.sin(2*np.pi*x)*np.sin(2*np.pi*y)).reshape(ms_x.shape)
+
     pt_x = Variable(torch.from_numpy(x).float(), requires_grad=False).to(device)
+    pt_y = Variable(torch.from_numpy(y).float(), requires_grad=False).to(device)
     pt_t = Variable(torch.from_numpy(t).float(), requires_grad=False).to(device)
-    pt_u = model((torch.stack((pt_x[:, 0], pt_t[:, 0]), axis=1)))
+    pt_u = model((torch.stack((pt_x[:, 0], pt_y[:, 0], pt_t[:,0]), axis=1)))
     u = pt_u.data.cpu().numpy()
     ms_u = u.reshape(ms_x.shape)
 
 
-    fig = plt.figure(figsize=(14, 10))
-    ax = fig.add_subplot(111)
+    fig = plt.figure()
+    plt.gca().set_aspect('equal')
+    pc = plt.pcolormesh(ms_x, ms_y, ms_u-real_u, cmap=plt.get_cmap("rainbow"), linewidth=0, antialiased= True, )
+    pc.set_clim(-0.05, 0.05)
+    plt.title('Iteration:'+str(iter)+'  Time:'+str(t_time))
+    if colorbar:
+        fig.colorbar(pc)
+    return fig
 
-    gs1 = gridspec.GridSpec(1, 3)
-    gs1.update(top=1 - 1.0 / 3.0 - 0.1, bottom=1.0 - 2.0 / 3.0, left=0.1, right=0.9, wspace=0.5)
 
-    exact = np.exp(-ms_t)*np.sin(2*np.pi*ms_x)
-    ax = plt.subplot(gs1[0, 0])
-    ax.plot(ms_x[25,:], exact[25, :], 'b-', linewidth=2, label='Exact')
-    ax.plot(ms_x[25,:], ms_u[25, :], 'r--', linewidth=2, label='Prediction')
-    ax.set_xlabel('$x$')
-    ax.set_ylabel('$u(t,x)$')
-    ax.set_title('$t = 0.25$', fontsize=15)
-    ax.axis('square')
-    ax.set_xlim([-0.1, 1.1])
-    ax.set_ylim([-1, 1])
-    plt.gca().set_aspect(0.5)
-    for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
-                 ax.get_xticklabels() + ax.get_yticklabels()):
-        item.set_fontsize(15)
+def plot_slice(model, device):
+    x = np.arange(0, 1, 0.05)
+    y = np.arange(0, 1, 0.05)
+    ms_x, ms_y = np.meshgrid(x, y)
+    time = np.arange(0, 1, 0.01)
+    rel_error = []
+    for t in time:
+        t = np.ones_like(ms_x)*t
+        pt_x = np.ravel(ms_x).reshape(-1, 1)
+        pt_y = np.ravel(ms_y).reshape(-1, 1)
+        pt_t = np.ravel(t).reshape(-1, 1)
+        pt_u = np.exp(-pt_t)*np.sin(2*np.pi*pt_x)*np.sin(2*np.pi*pt_y)
+        pt_x = Variable(torch.from_numpy(pt_x).float(), requires_grad=False).to(device)
+        pt_y = Variable(torch.from_numpy(pt_y).float(), requires_grad=False).to(device)
+        pt_t = Variable(torch.from_numpy(pt_t).float(), requires_grad=False).to(device)
+        u = (model(torch.stack((pt_x[:, 0], pt_y[:, 0], pt_t[:,0]), axis=1))[:, 0]).detach().cpu().numpy()
+        rel_error.append(np.linalg.norm(pt_u[:, 0] - u) / np.linalg.norm(pt_u[:, 0]))
 
-    ax = plt.subplot(gs1[0, 1])
-    ax.plot(ms_x[50,:], exact[50, :], 'b-', linewidth=2, label='Exact')
-    ax.plot(ms_x[50,:], ms_u[50, :], 'r--', linewidth=2, label='Prediction')
-    ax.set_xlabel('$x$')
-    ax.set_ylabel('$u(t,x)$')
-    ax.axis('square')
-    ax.set_xlim([-0.1, 1.1])
-    ax.set_ylim([-1, 1])
-    plt.gca().set_aspect(0.5)
-    ax.set_title('$t = 0.50$', fontsize=15)
-    ax.legend(
-        loc='upper center',
-        bbox_to_anchor=(0.5, -0.15),
-        ncol=5,
-        frameon=False,
-        prop={'size': 15}
-    )
-
-    for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
-                 ax.get_xticklabels() + ax.get_yticklabels()):
-        item.set_fontsize(15)
-
-    ax = plt.subplot(gs1[0, 2])
-    ax.plot(ms_x[75,:], exact[75, :], 'b-', linewidth=2, label='Exact')
-    ax.plot(ms_x[75,:], ms_u[75, :], 'r--', linewidth=2, label='Prediction')
-    ax.set_xlabel('$x$')
-    ax.set_ylabel('$u(t,x)$')
-    ax.axis('square')
-    ax.set_xlim([-0.1, 1.1])
-    ax.set_ylim([-1., 1.])
-    plt.gca().set_aspect(0.5)
-    ax.set_title('$t = 0.75$', fontsize=15)
-
-    for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
-                 ax.get_xticklabels() + ax.get_yticklabels()):
-        item.set_fontsize(15)
-    summary.add_figure('slice', fig)
-    fig.savefig('./figures/slices.pdf', bbox_inches = 'tight', pad_inches=0.3)
+    fig = plt.figure()
+    #plt.gca().set_aspect('equal')
+    plt.plot(time, rel_error)
+    plt.xlabel('time')
+    plt.ylabel('rel. error')
+    return fig

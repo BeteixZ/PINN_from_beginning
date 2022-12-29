@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1672244159 "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" "Tmp/report2d.pdf" "report2d" 1672244162
-  "Tmp/report2d.aux" 1672244162 2517 2d30b0e0e2802771b951abf39ebdc5f1 "pdflatex"
-  "Tmp/report2d.out" 1672244162 618 e741c439a21c0388e7b8a3eb97d03b82 "pdflatex"
-  "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" 1672244158 9953 5ff8a754a8e47e9a2b1a14cf35b4d1c2 ""
+["pdflatex"] 1672302492 "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" "Tmp/report2d.pdf" "report2d" 1672302495
+  "Tmp/report2d.aux" 1672302495 3483 7db36d9b9f04ddd4bc8de55bab9a0503 "pdflatex"
+  "Tmp/report2d.out" 1672302495 999 82c414ba5352e1559134897e0c3c55ac "pdflatex"
+  "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" 1672302488 10968 510b1e319e3cbc2f1c381ec584533544 ""
   "d:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1661252887 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "d:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1661252052 1120 1e8878807317373affa7f7bba4cf2f6a ""
   "d:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy6.tfm" 1661252052 1124 14ccf5552bc7f77ca02a8a402bea8bfb ""
@@ -167,9 +167,12 @@
   "d:/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1661254999 4371942 4da0b61dd4e7f53d75f1634779d7cd6f ""
   "d:/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1661255167 1458111 c37ff91519bea2dbc08c23053c90a9db ""
   "d:/texlive/2022/texmf.cnf" 1661254971 713 e69b156964470283e0530f5060668171 ""
-  "pics/MSE_relerror.pdf" 1672242436 92227 5b01efa4306bad8d9ca996e3fc318543 ""
+  "pics/MSE_relerror.pdf" 1672244976 92226 e7d2a3e7c421e3f693fcc30a6b5df2b3 ""
+  "pics/error.png" 1672299315 136596 f544d304674750a64190f9066c1de61c ""
+  "pics/rel_error_with_t.pdf" 1672302245 9752 f2058f247d66d2e8c6807f5ce0b46f96 ""
+  "pics/sol.png" 1672244892 276102 39865870b920eace02de59e956738ded ""
   "preamble.sty" 1670835661 964 2313cef65d974d5618d098c154d9f640 ""
-  "report2d.tex" 1672244158 9953 5ff8a754a8e47e9a2b1a14cf35b4d1c2 ""
+  "report2d.tex" 1672302488 10968 510b1e319e3cbc2f1c381ec584533544 ""
   (generated)
   "Tmp/report2d.aux"
   "Tmp/report2d.log"

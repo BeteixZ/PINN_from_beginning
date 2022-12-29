@@ -1,7 +1,7 @@
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-from functional import plot_t
+from functional import plot_t, plot_t_error, plot_slice
 from model import Wave
 
 import torch
@@ -30,14 +30,16 @@ model = Wave(args.layer, args.neurons, args.act).to(device)
 model.load_state_dict(torch.load('./models/l6_n60_i200_b200_col17.0-lbfgs-mish.pt'))
 model.eval()
 
-iter = 1200
-for time in [0, 0.25, 0.5, 0.75, 1.0]:
-    colorbar = False
-    if time == 1.0:
-        colorbar = True
-    else:
-        colorbar = False
-
-    fig = plot_t(model, device, iter, time, colorbar)
-    fig.savefig("./outputpics/" + 'final_pic-' + str(time) + '.png')
-    plt.close('all')
+fig = plot_slice(model, device)
+fig.savefig("./outputpics/" + 'rel_error_with_t' + '.pdf')
+#iter = 1400
+#for time in [0, 0.2, 0.4, 0.6, 0.8, 1.0]:
+#    colorbar = False
+#    if time == 0.4 or time == 1.0:
+#        colorbar = True
+#    else:
+#        colorbar = False
+#
+#    fig = plot_t_error(model, device, iter, time, colorbar)
+#    fig.savefig("./outputpics/" + 'final_error_pic-' + str(time) + '.png')
+#    plt.close('all')

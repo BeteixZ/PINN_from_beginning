@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.8.23)  29 DEC 2022 00:16
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.8.23)  29 DEC 2022 16:28
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -654,30 +654,45 @@ Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on in
  [1
 
 {d:/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
-<./pics/MSE_relerror.pdf, id=143, 688.82344pt x 301.125pt>
+<./pics/MSE_relerror.pdf, id=148, 688.82344pt x 301.125pt>
 File: ./pics/MSE_relerror.pdf Graphic file (type pdf)
 <use ./pics/MSE_relerror.pdf>
-Package pdftex.def Info: ./pics/MSE_relerror.pdf  used on input line 222.
-(pdftex.def)             Requested size: 507.88533pt x 222.0249pt.
- [3 <./pics/MSE_relerror.pdf>] 
+Package pdftex.def Info: ./pics/MSE_relerror.pdf  used on input line 217.
+(pdftex.def)             Requested size: 406.3098pt x 177.62085pt.
+<./pics/sol.png, id=152, 1052.43187pt x 688.82344pt>
+File: ./pics/sol.png Graphic file (type png)
+<use ./pics/sol.png>
+Package pdftex.def Info: ./pics/sol.png  used on input line 231.
+(pdftex.def)             Requested size: 457.09369pt x 299.17331pt.
+<./pics/error.png, id=153, 1035.87pt x 673.76718pt>
+File: ./pics/error.png Graphic file (type png)
+<use ./pics/error.png>
+Package pdftex.def Info: ./pics/error.png  used on input line 237.
+(pdftex.def)             Requested size: 457.09369pt x 297.31178pt.
+<./pics/rel_error_with_t.pdf, id=155, 462.52798pt x 346.89601pt>
+File: ./pics/rel_error_with_t.pdf Graphic file (type pdf)
+<use ./pics/rel_error_with_t.pdf>
+Package pdftex.def Info: ./pics/rel_error_with_t.pdf  used on input line 246.
+(pdftex.def)             Requested size: 330.12236pt x 247.6053pt.
+ [3 <./pics/MSE_relerror.pdf>] [4 <./pics/sol.png> <./pics/error.png>] 
 AED: lastpage setting LastPage
-[4] (Tmp/report2d.aux)
+[5 <./pics/rel_error_with_t.pdf>] (Tmp/report2d.aux)
 Package rerunfilecheck Info: File `report2d.out' has not changed.
-(rerunfilecheck)             Checksum: E741C439A21C0388E7B8A3EB97D03B82;618.
+(rerunfilecheck)             Checksum: 82C414BA5352E1559134897E0C3C55AC;999.
  ) 
 Here is how much of TeX's memory you used:
- 16083 strings out of 480175
- 248972 string characters out of 5894362
- 1297257 words of memory out of 5000000
- 33635 multiletter control sequences out of 15000+600000
+ 16111 strings out of 480175
+ 249530 string characters out of 5894362
+ 1275438 words of memory out of 5000000
+ 33658 multiletter control sequences out of 15000+600000
  483773 words of font info for 83 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
  85i,15n,93p,430b,2107s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti7.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on Tmp/report2d.pdf (4 pages, 248346 bytes).
+Output written on Tmp/report2d.pdf (5 pages, 545732 bytes).
 PDF statistics:
- 405 PDF objects out of 1000 (max. 8388607)
- 314 compressed objects within 4 object streams
- 111 named destinations out of 1000 (max. 500000)
- 30 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 445 PDF objects out of 1000 (max. 8388607)
+ 333 compressed objects within 4 object streams
+ 112 named destinations out of 1000 (max. 500000)
+ 61 words of extra memory for PDF output out of 10000 (max. 10000000)
 

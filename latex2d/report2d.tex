@@ -93,14 +93,12 @@
         u_f = ((8*pi**2)-1)*exp(-t_f)*sin(2*pi*x_f)*sin(2*pi*y_f)
         return u_t - u_xx - u_yy - u_f
 
-
     def mse_f(model, x_f, y_f, t_f):
         """
         This function calculates the MSE for the PDE.
         """
         f_u = f(model, x_f, y_f, t_f)
         return (f_u ** 2).mean()
-
 
     def mse_0(model, x_ic, y_ic, t_ic):
         """
@@ -111,7 +109,6 @@
         u = model(torch.stack((x_ic, y_ic , t_ic), axis=1))[:, 0]
         u_0 = sin(2*pi*x_ic)*sin(2*pi*y_ic)
         return ((u - u_0) ** 2).mean()
-
 
     def mse_b(model, x_bc, y_bc, t_bc):
         """
@@ -154,7 +151,6 @@
 
             return x_ic, y_ic, t_ic
 
-
         def bc_point(size, seed: int = 42):
             set_seed(seed)
             lb = np.array([0.0, 0.0, 0.0])
@@ -164,7 +160,6 @@
             y_bc = c_f[:, 1]
             t_bc = c_f[:, 2]
             return x_bc, y_bc, t_bc
-
 
         def collocation_point(size, seed: int = 42):
             set_seed(seed)
@@ -219,7 +214,7 @@
     ADAM optimizer is used for first 200 epochs and L-BFGS takes the rest. Note that using L-BFGS only with Mish, the loss fails to converge.
 
     \begin{figure}[htb]
-        \makebox[\textwidth][c]{\includegraphics[width=\textwidth]{./pics/MSE_relerror.pdf}}
+        \makebox[\textwidth][c]{\includegraphics[width=0.8\textwidth]{./pics/MSE_relerror.pdf}}
         \caption{The convergence speed and final error of L-BFGS only and ADAM+L-BFGS. The mix method outperforms using Tanh and Mish but GeLU does not.}
         \label{fig:al}
     \end{figure}
@@ -227,6 +222,35 @@
     This mix method outperforms when using Tanh and Mish, but not in GeLU. 
     In fact, in the GeLU scenario, when increase the number of hidden layers, neurons and training points, loss fails to converge. 
     Because the performs for L-BFGS are unstable, it is better used when the loss does not converge or converges very slowly at first, or when the neural network is complicated. 
+
+    \subsection{Getting the result}
+
+    Figure \ref{fig:sol} and \ref{fig:error} show the prediction and error of this equation with hyper-parameters in Table \ref{table:hp1}.
+    
+    \begin{figure}[htb!]
+        \makebox[\textwidth][c]{\includegraphics[width=0.9\textwidth]{./pics/sol.png}}
+        \caption{The solution at $T=$ 0, 0.25, 0.5, .75 and 1.}
+        \label{fig:sol}
+    \end{figure}
+
+    \begin{figure}[ht!]
+        \makebox[\textwidth][c]{\includegraphics[width=0.9\textwidth]{./pics/error.png}}
+        \caption{The error at $T=$ 0, 0.25, 0.5, .75 and 1.}
+        \label{fig:error}
+    \end{figure}
+
+
+    Figure \ref{fig:relerrorwitht} shows the change of relative error from $T=0$ to 1. 
+
+    \begin{figure}[ht!]
+        \makebox[\textwidth][c]{\includegraphics[width=0.65\textwidth]{./pics/rel_error_with_t.pdf}}
+        \caption{Relative error from $T=0$ to 1.}
+        \label{fig:relerrorwitht}
+    \end{figure}
+
+    \subsection{Investigation of Hyper-parameters}
+
+    
     \begin{thebibliography}{9}
         \bibitem{LHS}   Zong, Yifei, QiZhi He, and Alexandre M. Tartakovsky. ``Physics-Informed Neural Network Method for Parabolic Differential Equations with Sharply Perturbed Initial Conditions." arXiv preprint arXiv:2208.08635 (2022).
     \end{thebibliography}
