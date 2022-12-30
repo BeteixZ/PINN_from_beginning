@@ -17,7 +17,7 @@
 ::)
 
 for %%a in (tanh,gelu,elu,mish,softplus) do (
-    python main.py --layer 6 --neurons 80 --initpts 200 --bcpts 200 --colpts 17000 --epochs 1200 --lr 1 --act %%a --method lbfgs
+    python main.py --layer 6 --neurons 80 --initpts 200 --bcpts 200 --colpts 17000 --epochs 1400 --lr 1 --act %%a --method lbfgs
 )
 
 pause
