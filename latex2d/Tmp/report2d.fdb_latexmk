@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1672386576 "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" "Tmp/report2d.pdf" "report2d" 1672386581
-  "Tmp/report2d.aux" 1672386580 8579 5bd43582e98a0ebd67920b930653b3e0 "pdflatex"
-  "Tmp/report2d.out" 1672386580 1109 d7904aaf5195e22bbc08045d3d25e7b8 "pdflatex"
-  "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" 1672386575 20050 74e7c574e235169c203bc848f013c6ec ""
+["pdflatex"] 1672386846 "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" "Tmp/report2d.pdf" "report2d" 1672386850
+  "Tmp/report2d.aux" 1672386850 8579 5bd43582e98a0ebd67920b930653b3e0 "pdflatex"
+  "Tmp/report2d.out" 1672386850 1109 d7904aaf5195e22bbc08045d3d25e7b8 "pdflatex"
+  "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" 1672386845 20047 481697be92d2cd7132ec37261eaf0210 ""
   "d:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1661252887 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "d:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1661252052 1120 1e8878807317373affa7f7bba4cf2f6a ""
   "d:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy6.tfm" 1661252052 1124 14ccf5552bc7f77ca02a8a402bea8bfb ""
@@ -189,7 +189,7 @@
   "pics/rel_error_with_t.pdf" 1672302245 9752 f2058f247d66d2e8c6807f5ce0b46f96 ""
   "pics/sol.png" 1672244892 276102 39865870b920eace02de59e956738ded ""
   "preamble.sty" 1670835661 964 2313cef65d974d5618d098c154d9f640 ""
-  "report2d.tex" 1672386575 20050 74e7c574e235169c203bc848f013c6ec ""
+  "report2d.tex" 1672386845 20047 481697be92d2cd7132ec37261eaf0210 ""
   (generated)
   "Tmp/report2d.aux"
   "Tmp/report2d.log"

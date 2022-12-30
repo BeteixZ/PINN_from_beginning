@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.8.23)  30 DEC 2022 15:49
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.8.23)  30 DEC 2022 15:54
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -732,15 +732,15 @@ Package rerunfilecheck Info: File `report2d.out' has not changed.
 (rerunfilecheck)             Checksum: D7904AAF5195E22BBC08045D3D25E7B8;1109.
  ) 
 Here is how much of TeX's memory you used:
- 19026 strings out of 480175
- 312982 string characters out of 5894362
- 1348592 words of memory out of 5000000
- 36551 multiletter control sequences out of 15000+600000
+ 19025 strings out of 480175
+ 312976 string characters out of 5894362
+ 1347592 words of memory out of 5000000
+ 36550 multiletter control sequences out of 15000+600000
  487344 words of font info for 97 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
  85i,15n,93p,430b,2184s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti7.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb><d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on Tmp/report2d.pdf (9 pages, 920735 bytes).
+Output written on Tmp/report2d.pdf (9 pages, 920730 bytes).
 PDF statistics:
  582 PDF objects out of 1000 (max. 8388607)
  431 compressed objects within 5 object streams
