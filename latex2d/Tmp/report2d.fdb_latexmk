@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1672386414 "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" "Tmp/report2d.pdf" "report2d" 1672386418
-  "Tmp/report2d.aux" 1672386417 8579 5bd43582e98a0ebd67920b930653b3e0 "pdflatex"
-  "Tmp/report2d.out" 1672386417 1109 d7904aaf5195e22bbc08045d3d25e7b8 "pdflatex"
-  "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" 1672386412 19922 d9d75d8d15e77f0e5209b08fd9917ff3 ""
+["pdflatex"] 1672386576 "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" "Tmp/report2d.pdf" "report2d" 1672386581
+  "Tmp/report2d.aux" 1672386580 8579 5bd43582e98a0ebd67920b930653b3e0 "pdflatex"
+  "Tmp/report2d.out" 1672386580 1109 d7904aaf5195e22bbc08045d3d25e7b8 "pdflatex"
+  "c:/Users/11588/PycharmProjects/pythonProject/pinn/PINN_from_beginning/latex2d/report2d.tex" 1672386575 20050 74e7c574e235169c203bc848f013c6ec ""
   "d:/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1661252887 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "d:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1661252052 1120 1e8878807317373affa7f7bba4cf2f6a ""
   "d:/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy6.tfm" 1661252052 1124 14ccf5552bc7f77ca02a8a402bea8bfb ""
@@ -71,6 +71,7 @@
   "d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti7.pfb" 1661252053 36607 d654cb3f2bc54f57509240071db3bffa ""
   "d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb" 1661252053 35660 fb24af7afbadb71801619f1415838111 ""
   "d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb" 1661252053 36310 f5ddc6715cc60deb16d9db5ded6a9391 ""
+  "d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb" 1661252053 31099 342ef5a582aacbd3346f3cf4579679fa ""
   "d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb" 1661252053 29078 718ea4567ceff944262b0f5b0800e1d9 ""
   "d:/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb" 1661252053 34694 870c211f62cb72718a00e353f14f254d ""
   "d:/texlive/2022/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1661253610 71627 94eb9990bed73c364d7f53f960cc8c5b ""
@@ -188,7 +189,7 @@
   "pics/rel_error_with_t.pdf" 1672302245 9752 f2058f247d66d2e8c6807f5ce0b46f96 ""
   "pics/sol.png" 1672244892 276102 39865870b920eace02de59e956738ded ""
   "preamble.sty" 1670835661 964 2313cef65d974d5618d098c154d9f640 ""
-  "report2d.tex" 1672386412 19922 d9d75d8d15e77f0e5209b08fd9917ff3 ""
+  "report2d.tex" 1672386575 20050 74e7c574e235169c203bc848f013c6ec ""
   (generated)
   "Tmp/report2d.aux"
   "Tmp/report2d.log"
