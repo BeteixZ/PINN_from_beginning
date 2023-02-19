@@ -3,7 +3,7 @@ from pyDOE import lhs
 from functional import set_seed
 
 
-def ptsgen(in_size=201, out_size=201, wall_size=441, cy_size=251, coll_size1=22500, coll_size2=7500, seed=42):
+def ptsgen(in_size=201, out_size=201, wall_size=441, cy_size=251, coll_size1=30000, coll_size2=8000, seed=42):
     set_seed(seed)
     lb = np.array([0, 0])
     ub = np.array([1.1, 0.41])
@@ -33,7 +33,7 @@ def ptsgen(in_size=201, out_size=201, wall_size=441, cy_size=251, coll_size1=225
     XY_c_refine = [0.1, 0.1] + [0.2, 0.2] * lhs(2, coll_size2)
     XY_c = np.concatenate((XY_c, XY_c_refine), 0)
     XY_c = DelCylPT(XY_c, xc=0.2, yc=0.2, r=0.05)
-    # XY_c = np.concatenate((XY_c, WALL, CYLD, OUTLET, INLET[:, 0:2]), 0)
+    XY_c = np.concatenate((XY_c, WALL, CYLD, OUTLET, INLET[:, 0:2]), 0)
 
     return XY_c[:, 0], XY_c[:, 1], INLET[:, 0], INLET[:, 1], INLET[:, 2],INLET[:, 3], OUTLET[:, 0], OUTLET[:, 1], WALL[:, 0], WALL[:, 1]
 
