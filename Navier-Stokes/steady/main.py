@@ -97,12 +97,15 @@ def closure(model, optimizer, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_
 def train(model, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall, epochs, summary, epoch):
     # Initialize the optimizer
     global iter
+
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    scheduler = StepLR(optimizer, step_size=1000, gamma=0.5)
     print("Start training: ADAM")
     for i in range(3000):
         closure_fn = partial(closure, model, optimizer, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall,
                              summary)
         optimizer.step(closure_fn)
+        scheduler.step()
     torch.cuda.empty_cache()
     print("Start training: L-BFGS")
     optimizer = torch.optim.LBFGS(model.parameters(),
