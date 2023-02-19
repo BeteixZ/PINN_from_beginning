@@ -11,6 +11,7 @@ Every run writes to TensorBoard file.、
 
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:<512>"
 
 import torch
 import matplotlib.pyplot as plt
@@ -46,7 +47,7 @@ parser.add_argument('--epochs', help='number of epochs', type=int, default=1400)
 parser.add_argument('--lr', help='learning rate', type=float, default=1)
 parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
 parser.add_argument('--act', help='activation function', type=str, default='mish')
-parser.add_argument('--save', help='save model', type=bool, default=False)
+parser.add_argument('--save', help='save model', type=bool, default=True)
 
 
 def closure(model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_bc, y_bc, t_bc, summary, epoch):
