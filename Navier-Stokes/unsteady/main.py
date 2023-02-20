@@ -1,15 +1,6 @@
-"""
-This file contains the main code for PINN including adjustable
-1. Neural Layer
-2. Neurons
-3. Points (Init, Bc and Collo.)
-4. Epochs
-5. LR
-
-Every run writes to TensorBoard file.、
-"""
-
 import os
+import shutil
+
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,7 +16,6 @@ from functional import set_seed, init_weights, \
     args_summary, postProcess, preprocess
 from model import Model, mse_f, mse_inlet, mse_outlet, mse_wall, uv
 from datagen import ptsgen
-
 
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -50,7 +40,7 @@ parser.add_argument('--act', help='activation function', type=str, default='relu
 parser.add_argument('--save', help='save model', type=bool, default=True)
 
 
-def closure(model, optimizer, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall, summary):
+def closure(model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall, summary):
     """
     The closure function to use L-BFGS optimization method.
     """
@@ -60,10 +50,10 @@ def closure(model, optimizer, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_
     global count
     optimizer.zero_grad()
     # evaluating the MSE for the PDE
-    msef = mse_f(model, x_f, y_f)
-    msein = mse_inlet(model, x_in, y_in, u_in, v_in)
-    mseout = mse_outlet(model, x_out, y_out)
-    msewall = mse_wall(model, x_wall, y_wall)
+    msef = mse_f(model, x_f, y_f,t_f)
+    msein = mse_inlet(model, x_in, y_in,t_in, u_in, v_in)
+    mseout = mse_outlet(model, x_out, y_out,t_out)
+    msewall = mse_wall(model, x_wall, y_wall,t_wall)
     loss = sum(msef) + 1 * (msein + mseout + msewall)  # 2 here is a parameter??
     # pt_x, pt_y, pt_t, pt_u = mesh_point()
     # pt_x = Variable(torch.from_numpy(pt_x).float(), requires_grad=False).to(device)
@@ -94,7 +84,7 @@ def closure(model, optimizer, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_
     return loss
 
 
-def train(model, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall, epochs, summary, epoch):
+def train(model, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall, epochs, summary, epoch):
     # Initialize the optimizer
     global iter
 
@@ -102,7 +92,7 @@ def train(model, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall,
     scheduler = StepLR(optimizer, step_size=1000, gamma=0.5)
     print("Start training: ADAM")
     for i in range(5000):
-        closure_fn = partial(closure, model, optimizer, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall,
+        closure_fn = partial(closure, model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall,
                              summary)
         optimizer.step(closure_fn)
         scheduler.step()
@@ -116,7 +106,7 @@ def train(model, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall,
                                   # tolerance_grad=0.01 * np.finfo(float).eps,
                                   tolerance_change=0,
                                   line_search_fn="strong_wolfe")
-    closure_fn = partial(closure, model, optimizer, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall,
+    closure_fn = partial(closure, model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall,
                          summary)
     optimizer.step(closure_fn)
 
@@ -131,18 +121,27 @@ def main():
     time_start = time.time()
     model = Model(args.layer, args.neurons, args.act).to(device)
     model.apply(init_weights)
-    x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall = ptsgen()  # let's use default first
+    x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall = ptsgen()  # let's use default first
     x_f = Variable(torch.from_numpy(x_f.astype(np.float32)), requires_grad=True).to(device)
     y_f = Variable(torch.from_numpy(y_f.astype(np.float32)), requires_grad=True).to(device)
+    t_f = Variable(torch.from_numpy(t_f.astype(np.float32)), requires_grad=True).to(device)
+
     x_in = Variable(torch.from_numpy(x_in.astype(np.float32)), requires_grad=True).to(device)
     y_in = Variable(torch.from_numpy(y_in.astype(np.float32)), requires_grad=True).to(device)
+    t_in = Variable(torch.from_numpy(t_in.astype(np.float32)), requires_grad=True).to(device)
     u_in = Variable(torch.from_numpy(u_in.astype(np.float32)), requires_grad=False).to(device)
     v_in = Variable(torch.from_numpy(v_in.astype(np.float32)), requires_grad=False).to(device)
+
     x_out = Variable(torch.from_numpy(x_out.astype(np.float32)), requires_grad=True).to(device)
     y_out = Variable(torch.from_numpy(y_out.astype(np.float32)), requires_grad=True).to(device)
+    t_out = Variable(torch.from_numpy(t_out.astype(np.float32)), requires_grad=True).to(device)
+
+
     x_wall = Variable(torch.from_numpy(x_wall.astype(np.float32)), requires_grad=True).to(device)
     y_wall = Variable(torch.from_numpy(y_wall.astype(np.float32)), requires_grad=True).to(device)
-    train(model, x_f, y_f, x_in, y_in, u_in, v_in, x_out, y_out, x_wall, y_wall, args.epochs, summary,
+    t_wall = Variable(torch.from_numpy(t_wall.astype(np.float32)), requires_grad=True).to(device)
+
+    train(model, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall, args.epochs, summary,
           args.epochs)
     summary.add_hparams(vars(args), {'loss': final_loss})
     time_end = time.time()
@@ -151,43 +150,44 @@ def main():
         torch.save(model.state_dict(), './models/' + 'l' + str(args.layer) + '_n' + str(args.neurons) + '_i' + str(
             args.initpts) + '_b' + str(args.bcpts) + '_col' + str(args.colpts / 1000) + '-' + str(
             args.method) + '-' + str(args.act) + '.pt')
-    # make_gif()
-    # plot_slice(model, summary, device)
-    # plot_error(model, summary, device)
-    # plot_with_points(model, t_ic, x_ic, l_t_bc, u_t_bc, summary, device)
-    [x_FLUENT, y_FLUENT, u_FLUENT, v_FLUENT, p_FLUENT] = preprocess(dir='../FluentReferenceMu002/FluentSol.mat')
-    field_FLUENT = [x_FLUENT, y_FLUENT, u_FLUENT, v_FLUENT, p_FLUENT]
+        # Plot the pressure history on the leading point of cylinder
 
-    x_PINN = np.linspace(0, 1.1, 251)
-    y_PINN = np.linspace(0, 0.41, 101)
-    x_PINN, y_PINN = np.meshgrid(x_PINN, y_PINN)
-    x_PINN = x_PINN.flatten()[:, None]
-    y_PINN = y_PINN.flatten()[:, None]
-    dst = ((x_PINN - 0.2) ** 2 + (y_PINN - 0.2) ** 2) ** 0.5
-    x_PINN = x_PINN[dst >= 0.05]
-    y_PINN = y_PINN[dst >= 0.05]
-    x_PINN = x_PINN.flatten()[:, None]
-    y_PINN = y_PINN.flatten()[:, None]
-    x_PINN = Variable(torch.from_numpy(x_PINN.astype(np.float32)), requires_grad=True).to(device)
-    y_PINN = Variable(torch.from_numpy(y_PINN.astype(np.float32)), requires_grad=True).to(device)
+    t_front = np.linspace(0, 0.5, 100)
+    x_front = np.zeros_like(t_front)
+    x_front.fill(0.15)
+    y_front = np.zeros_like(t_front)
+    y_front.fill(0.20)
+    t_front = t_front.flatten()[:, None]
+    x_front = x_front.flatten()[:, None]
+    y_front = y_front.flatten()[:, None]
 
-    u_PINN, v_PINN, p_PINN, _, _, _ = uv(model, x_PINN[:, 0], y_PINN[:, 0])
-    x_PINN = x_PINN.data.cpu().numpy()
-    y_PINN = y_PINN.data.cpu().numpy()
-    u_PINN = u_PINN.data.cpu().numpy()
-    u_PINN = np.reshape(u_PINN, (u_PINN.size, 1))
-    v_PINN = v_PINN.data.cpu().numpy()
-    v_PINN = np.reshape(v_PINN, (u_PINN.size, 1))
-    p_PINN = p_PINN.data.cpu().numpy()
-    field_MIXED = [x_PINN, y_PINN, u_PINN, v_PINN, p_PINN]
+    u_pred, v_pred, p_pred = model.predict(x_front, y_front, t_front)
+    plt.plot(t_front, p_pred)
+    plt.show()
 
+    # Output u, v, p at each time step
+    N_t = 51
+    x_star = np.linspace(0, 1.1, 401)
+    y_star = np.linspace(0, 0.41, 161)
+    x_star, y_star = np.meshgrid(x_star, y_star)
+    x_star = x_star.flatten()[:, None]
+    y_star = y_star.flatten()[:, None]
+    dst = ((x_star - 0.2) ** 2 + (y_star - 0.2) ** 2) ** 0.5
+    x_star = x_star[dst >= 0.05]
+    y_star = y_star[dst >= 0.05]
+    x_star = x_star.flatten()[:, None]
+    y_star = y_star.flatten()[:, None]
+    shutil.rmtree('./output', ignore_errors=True)
+    os.makedirs('./output')
+    for i in range(N_t):
+        t_star = np.zeros((x_star.size, 1))
+        t_star.fill(i * 0.5 / (N_t - 1))
 
-    if args.save:
-        torch.save(model.state_dict(), './models/'+'model.pt')
+        u_pred, v_pred, p_pred = model.predict(x_star, y_star, t_star)
+        field = [x_star, y_star, t_star, u_pred, v_pred, p_pred]
+        amp_pred = (u_pred ** 2 + v_pred ** 2) ** 0.5
 
-        # Plot the comparison of u, v, p
-        postProcess(xmin=0, xmax=1.1, ymin=0, ymax=0.41, field_FLUENT=field_FLUENT, field_MIXED=field_MIXED, s=3,
-                    alpha=0.5)
+        postProcess(xmin=0, xmax=1.1, ymin=0, ymax=0.41, field=field, s=2, num=i)
 
 if __name__ == "__main__":
 

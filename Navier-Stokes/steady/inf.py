@@ -11,11 +11,11 @@ from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR, ExponentialLR
 from torch.utils.tensorboard import SummaryWriter
 
 from functional import set_seed, init_weights, \
-    args_summary, plot_t, postProcess, preprocess
+    args_summary, postProcess, preprocess
 from model import Model, mse_f, mse_inlet, mse_outlet, mse_wall, uv
 from datagen import ptsgen
 
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
 parser = argparse.ArgumentParser()
 parser.add_argument('--layer', help='number of layers', type=int, default=8)
 parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=40)
@@ -24,7 +24,7 @@ parser.add_argument('--act', help='activation function', type=str, default='mish
 def main():
     args = parser.parse_args()
     model = Model(args.layer, args.neurons, args.act).to(device)
-    model.load_state_dict(torch.load("./models/model.pt"))
+    model.load_state_dict(torch.load("./models/new.pt"))
     model.eval()
     [x_FLUENT, y_FLUENT, u_FLUENT, v_FLUENT, p_FLUENT] = preprocess(dir='../FluentReferenceMu002/FluentSol.mat')
     field_FLUENT = [x_FLUENT, y_FLUENT, u_FLUENT, v_FLUENT, p_FLUENT]
