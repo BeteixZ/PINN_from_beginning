@@ -46,7 +46,7 @@ parser.add_argument('--bcpts', help='number of boundary points', type=int, defau
 parser.add_argument('--colpts', help='number of collocation points', type=int, default=30000)
 parser.add_argument('--epochs', help='number of epochs', type=int, default=30000)
 parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
-parser.add_argument('--act', help='activation function', type=str, default='mish')
+parser.add_argument('--act', help='activation function', type=str, default='tanh')
 parser.add_argument('--save', help='save model', type=bool, default=True)
 
 
