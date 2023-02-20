@@ -17,7 +17,6 @@ from functional import set_seed, init_weights, \
 from model import Model, mse_f, mse_inlet, mse_outlet, mse_wall, uv
 from datagen import ptsgen
 
-
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 iter = 0
@@ -40,7 +39,8 @@ parser.add_argument('--act', help='activation function', type=str, default='tanh
 parser.add_argument('--save', help='save model', type=bool, default=True)
 
 
-def closure(model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall, summary):
+def closure(model, optimizer, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall,
+            summary):
     """
     The closure function to use L-BFGS optimization method.
     """
@@ -50,10 +50,10 @@ def closure(model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, 
     global count
     optimizer.zero_grad()
     # evaluating the MSE for the PDE
-    msef = mse_f(model, x_f, y_f,t_f)
-    msein = mse_inlet(model, x_in, y_in,t_in, u_in, v_in)
-    mseout = mse_outlet(model, x_out, y_out,t_out)
-    msewall = mse_wall(model, x_wall, y_wall,t_wall)
+    msef = mse_f(model, x_f, y_f, t_f)
+    msein = mse_inlet(model, x_in, y_in, t_in, u_in, v_in)
+    mseout = mse_outlet(model, x_out, y_out, t_out)
+    msewall = mse_wall(model, x_wall, y_wall, t_wall)
     loss = sum(msef) + 1 * (msein + mseout + msewall)  # 2 here is a parameter??
     # pt_x, pt_y, pt_t, pt_u = mesh_point()
     # pt_x = Variable(torch.from_numpy(pt_x).float(), requires_grad=False).to(device)
@@ -68,7 +68,8 @@ def closure(model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, 
     final_loss = loss
     # final_relerr = relerror
     if iter % 10 == 0:
-        print("Iter: {}, loss: {:.4f}, msef: {}, mse0: {:.4f}, mseb:{:.4f}".format(iter,loss.item(),msef,msein,mseout+msewall))
+        print("Iter: {}, loss: {:.4f}, msef: {}, mse0: {:.4f}, mseb:{:.4f}".format(iter, loss.item(), msef, msein,
+                                                                                   mseout + msewall))
         # print(f"[Iter: {iter}] loss: {loss.item()}, msef:{msef}, mse0:{msein}, mseb:{mseout + msewall}")
     # slice = np.concatenate((np.arange(0, 10, 1), np.arange(10, 100, 10), np.arange(100, 1100, 100)))
     # if iter in slice:
@@ -84,7 +85,8 @@ def closure(model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, 
     return loss
 
 
-def train(model, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall, epochs, summary, epoch):
+def train(model, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall, epochs,
+          summary, epoch):
     # Initialize the optimizer
     global iter
 
@@ -92,7 +94,8 @@ def train(model, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, 
     scheduler = StepLR(optimizer, step_size=1000, gamma=0.5)
     print("Start training: ADAM")
     for i in range(100):
-        closure_fn = partial(closure, model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall,
+        closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out,
+                             t_out, x_wall, y_wall, t_wall,
                              summary)
         optimizer.step(closure_fn)
         scheduler.step()
@@ -106,7 +109,8 @@ def train(model, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, 
                                   # tolerance_grad=0.01 * np.finfo(float).eps,
                                   tolerance_change=0,
                                   line_search_fn="strong_wolfe")
-    closure_fn = partial(closure, model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall,
+    closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out,
+                         x_wall, y_wall, t_wall,
                          summary)
     optimizer.step(closure_fn)
 
@@ -136,12 +140,12 @@ def main():
     y_out = Variable(torch.from_numpy(y_out.astype(np.float32)), requires_grad=True).to(device)
     t_out = Variable(torch.from_numpy(t_out.astype(np.float32)), requires_grad=True).to(device)
 
-
     x_wall = Variable(torch.from_numpy(x_wall.astype(np.float32)), requires_grad=True).to(device)
     y_wall = Variable(torch.from_numpy(y_wall.astype(np.float32)), requires_grad=True).to(device)
     t_wall = Variable(torch.from_numpy(t_wall.astype(np.float32)), requires_grad=True).to(device)
 
-    train(model, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall, args.epochs, summary,
+    train(model, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall, args.epochs,
+          summary,
           args.epochs)
     summary.add_hparams(vars(args), {'loss': final_loss})
     time_end = time.time()
@@ -160,8 +164,19 @@ def main():
     t_front = t_front.flatten()[:, None]
     x_front = x_front.flatten()[:, None]
     y_front = y_front.flatten()[:, None]
+
+    x_frontT = Variable(torch.from_numpy(x_front.astype(np.float32)), requires_grad=True).to(device)
+    y_frontT = Variable(torch.from_numpy(y_front.astype(np.float32)), requires_grad=True).to(device)
+    t_frontT = Variable(torch.from_numpy(t_front.astype(np.float32)), requires_grad=True).to(device)
+
     model.eval()
-    u_pred, v_pred, p_pred = model(x_front, y_front, t_front)
+
+    u_pred, v_pred, p_pred,_,_,_ = uv(model, x_frontT[:, 0], y_frontT[:, 0], t_frontT[:, 0])
+
+    u_pred = u_pred.data.cpu().numpy()
+    v_pred = v_pred.data.cpu().numpy()
+    p_pred = p_pred.data.cpu().numpy()
+
     plt.plot(t_front, p_pred)
     plt.show()
 
@@ -177,18 +192,27 @@ def main():
     y_star = y_star[dst >= 0.05]
     x_star = x_star.flatten()[:, None]
     y_star = y_star.flatten()[:, None]
+
+    x_starT = Variable(torch.from_numpy(x_star.astype(np.float32)), requires_grad=True).to(device)
+    y_starT = Variable(torch.from_numpy(y_star.astype(np.float32)), requires_grad=True).to(device)
+
     shutil.rmtree('./output', ignore_errors=True)
     os.makedirs('./output')
     for i in range(N_t):
         t_star = np.zeros((x_star.size, 1))
         t_star.fill(i * 0.5 / (N_t - 1))
 
-        u_pred, v_pred, p_pred = model.predict(x_star, y_star, t_star)
+        t_starT = Variable(torch.from_numpy(t_star.astype(np.float32)), requires_grad=True).to(device)
+
+        u_pred, v_pred, p_pred, _, _, _ = uv(model, x_starT[:, 0], y_starT[:, 0], t_starT[:, 0])
+        u_pred = u_pred.data.cpu().numpy()
+        v_pred = v_pred.data.cpu().numpy()
+        p_pred = p_pred.data.cpu().numpy()
         field = [x_star, y_star, t_star, u_pred, v_pred, p_pred]
         amp_pred = (u_pred ** 2 + v_pred ** 2) ** 0.5
 
         postProcess(xmin=0, xmax=1.1, ymin=0, ymax=0.41, field=field, s=2, num=i)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     main()
