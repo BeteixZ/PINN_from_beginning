@@ -14,7 +14,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from functional import set_seed, init_weights, \
     args_summary, postProcess, preprocess
-from model import Model, mse_f, mse_inlet, mse_outlet, mse_wall, uv
+from model import Model, mse_f, mse_inlet, mse_outlet, mse_wall, uv, mse_ic
 from datagen import ptsgen
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -39,7 +39,7 @@ parser.add_argument('--act', help='activation function', type=str, default='tanh
 parser.add_argument('--save', help='save model', type=bool, default=True)
 
 
-def closure(model, optimizer, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall,
+def closure(model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall,
             summary):
     """
     The closure function to use L-BFGS optimization method.
@@ -51,10 +51,11 @@ def closure(model, optimizer, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out
     optimizer.zero_grad()
     # evaluating the MSE for the PDE
     msef = mse_f(model, x_f, y_f, t_f)
+    mseic = mse_ic(model, x_ic, y_ic, t_ic)
     msein = mse_inlet(model, x_in, y_in, t_in, u_in, v_in)
     mseout = mse_outlet(model, x_out, y_out, t_out)
     msewall = mse_wall(model, x_wall, y_wall, t_wall)
-    loss = sum(msef) + 1 * (msein + mseout + msewall)  # 2 here is a parameter??
+    loss = sum(msef) + 5 * (msein  + msewall) + mseic + mseout  # 2 here is a parameter??
     # pt_x, pt_y, pt_t, pt_u = mesh_point()
     # pt_x = Variable(torch.from_numpy(pt_x).float(), requires_grad=False).to(device)
     # pt_y = Variable(torch.from_numpy(pt_y).float(), requires_grad=False).to(device)
@@ -85,7 +86,7 @@ def closure(model, optimizer, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out
     return loss
 
 
-def train(model, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall, epochs,
+def train(model, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall, epochs,
           summary, epoch):
     # Initialize the optimizer
     global iter
@@ -94,7 +95,7 @@ def train(model, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_ou
     scheduler = StepLR(optimizer, step_size=2000, gamma=0.5)
     print("Start training: ADAM")
     for i in range(10000):
-        closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out,
+        closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_in, y_in, t_in, u_in, v_in, x_out, y_out,
                              t_out, x_wall, y_wall, t_wall,
                              summary)
         optimizer.step(closure_fn)
@@ -109,7 +110,7 @@ def train(model, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_ou
                                   # tolerance_grad=0.01 * np.finfo(float).eps,
                                   tolerance_change=0,
                                   line_search_fn="strong_wolfe")
-    closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out,
+    closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out,
                          x_wall, y_wall, t_wall,
                          summary)
     optimizer.step(closure_fn)
@@ -125,10 +126,15 @@ def main():
     time_start = time.time()
     model = Model(args.layer, args.neurons, args.act).to(device)
     model.apply(init_weights)
-    x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall = ptsgen()  # let's use default first
+    x_f, y_f, t_f, x_ic, y_ic, t_ic, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall = ptsgen()  # let's use default first
     x_f = Variable(torch.from_numpy(x_f.astype(np.float32)), requires_grad=True).to(device)
     y_f = Variable(torch.from_numpy(y_f.astype(np.float32)), requires_grad=True).to(device)
     t_f = Variable(torch.from_numpy(t_f.astype(np.float32)), requires_grad=True).to(device)
+
+    x_ic = Variable(torch.from_numpy(x_ic.astype(np.float32)), requires_grad=True).to(device)
+    y_ic = Variable(torch.from_numpy(y_ic.astype(np.float32)), requires_grad=True).to(device)
+    t_ic = Variable(torch.from_numpy(t_ic.astype(np.float32)), requires_grad=True).to(device)
+
 
     x_in = Variable(torch.from_numpy(x_in.astype(np.float32)), requires_grad=True).to(device)
     y_in = Variable(torch.from_numpy(y_in.astype(np.float32)), requires_grad=True).to(device)
@@ -144,7 +150,7 @@ def main():
     y_wall = Variable(torch.from_numpy(y_wall.astype(np.float32)), requires_grad=True).to(device)
     t_wall = Variable(torch.from_numpy(t_wall.astype(np.float32)), requires_grad=True).to(device)
 
-    train(model, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall, args.epochs,
+    train(model, x_f, y_f, t_f, x_ic, y_ic, t_ic, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_out, x_wall, y_wall, t_wall, args.epochs,
           summary,
           args.epochs)
     summary.add_hparams(vars(args), {'loss': final_loss})

@@ -76,6 +76,15 @@ def uv_uv(model, x, y, t):
     return u, v
 
 
+def uv_uvp(model, x, y, t):
+    model_out = model(torch.stack((x, y, t), dim=1))
+    psi = model_out[:, 0:1]
+    u = derivative(psi.squeeze(), y).unsqueeze(dim=1)
+    v = -derivative(psi.squeeze(), x).unsqueeze(dim=1)
+    p =  model_out[:, 1:2]
+    return u, v, p
+
+
 def uv_p(model, x, y, t):
     model_out = model(torch.stack((x, y, t), dim=1))
     p = model_out[:, 1:2]
@@ -118,7 +127,7 @@ def mse_f(model, x_f, y_f, t_f):
     """
     This function calculates the MSE for the PDE.
     """
-    f_u, f_v, f_s11, f_s22, f_s12, f_p = f(model, x_f, y_f, t_f, 1., 0.02)
+    f_u, f_v, f_s11, f_s22, f_s12, f_p = f(model, x_f, y_f, t_f, 1., 0.001)
     return [torch.mean(f_u ** 2), torch.mean(f_v ** 2), torch.mean(f_s11 ** 2), torch.mean(f_s22 ** 2), torch.mean(
         f_s12 ** 2), torch.mean(f_p ** 2)]
 
@@ -147,3 +156,7 @@ def mse_wall(model, x_wall, y_wall, t_wall):
     return torch.mean(u ** 2) + torch.mean(v ** 2)
 
 # def rel_error(model, pt_x, pt_y, pt_u):
+
+def mse_ic(model, x_ic, y_ic, t_ic):
+    u,v,p=uv_uvp(model, x_ic, y_ic, t_ic)
+    return torch.mean(u**2)+torch.mean(v**2)+torch.mean(p**2)

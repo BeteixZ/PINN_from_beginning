@@ -5,8 +5,8 @@ from functional import set_seed
 
 def ptsgen(seed=42):
     set_seed(seed)
-    xmax = 1.1
-    tmax = 0.5
+    xmax = 2.2
+    tmax = 3.   # 0.5
     lb = np.array([0,0,0])
     ub = np.array([xmax, 0.41, tmax])
     x_IC, y_IC, t_IC = CartGrid(xmin=0, xmax=xmax,
@@ -28,13 +28,14 @@ def ptsgen(seed=42):
     wall_up = np.concatenate((x_upb, y_upb, t_upb), 1)
     wall_lw = np.concatenate((x_lwb, y_lwb, t_lwb), 1)
 
-    U_max = 0.5
+    U_max = 1.5
     T = tmax * 2  # Period
     x_inb, y_inb, t_inb = CartGrid(xmin=0, xmax=0,
                                    ymin=0, ymax=0.41,
                                    tmin=0, tmax=tmax,
                                    num_x=1, num_y=61, num_t=61)
-    u_inb = 4 * U_max * y_inb * (0.41 - y_inb) / (0.41 ** 2) * (np.sin(2 * 3.1416 * t_inb / T + 3 * 3.1416 / 2) + 1.0)
+    u_inb = 4*U_max * y_inb * (0.41 - y_inb)
+    #u_inb = 4 * U_max * y_inb * (0.41 - y_inb) / (0.41 ** 2) * (np.sin(2 * 3.1416 * t_inb / T + 3 * 3.1416 / 2) + 1.0)
     v_inb = np.zeros_like(x_inb)
     INB = np.concatenate((x_inb, y_inb, t_inb, u_inb, v_inb), 1)
 
@@ -61,7 +62,7 @@ def ptsgen(seed=42):
     XY_c = DelSrcPT(XY_c, xc=0.2, yc=0.2, r=0.05)
     XY_c = np.concatenate((XY_c, WALL, OUTB, INB[:, 0:3]), 0)
 
-    return XY_c[:, 0], XY_c[:, 1], XY_c[:,2], INB[:, 0], INB[:, 1], INB[:, 2],INB[:, 3],INB[:,4], OUTB[:, 0], OUTB[:, 1],OUTB[:,2], WALL[:, 0], WALL[:, 1],WALL[:,2]
+    return XY_c[:, 0], XY_c[:, 1], XY_c[:,2], IC[:,0], IC[:,1], IC[:,2], INB[:, 0], INB[:, 1], INB[:, 2],INB[:, 3],INB[:,4], OUTB[:, 0], OUTB[:, 1],OUTB[:,2], WALL[:, 0], WALL[:, 1],WALL[:,2]
 
 
 def CartGrid(xmin, xmax, ymin, ymax, tmin, tmax, num_x, num_y, num_t):
