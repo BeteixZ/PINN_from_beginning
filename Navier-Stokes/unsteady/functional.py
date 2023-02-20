@@ -108,3 +108,10 @@ def postProcess(xmin, xmax, ymin, ymax, field, s=2, num=0):
 
     plt.savefig('./output/uvp_comparison_'+str(num)+'.png',dpi=150)
     plt.close('all')
+
+
+def make_gif():
+    frames = [Image.open(Path("./output/"+image)) for image in sorted(os.listdir("./output/"), key=lambda x: int(x[:-4]))[0:]]
+    frame_one = frames[0]
+    frame_one.save("./uv_with_time.gif", format="GIF", append_images=frames,
+               save_all=True, duration=100, loop=1, include_color_table=True, optimize=False)
