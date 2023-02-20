@@ -53,7 +53,7 @@ def ptsgen(seed=42):
     WALL = np.concatenate((HOLE, wall_up, wall_lw), 0)
 
     # Collocation point on domain, with refinement near the wall
-    XY_c = lb + (ub - lb) * lhs(3, 50000)
+    XY_c = lb + (ub - lb) * lhs(3, 80000)
     XY_c_refine = [0.0, 0.0, 0.0] + [0.4, 0.4, tmax] * lhs(3, 10000)
     XY_c_lw = [0.0, 0.0, 0.0] + [1.1, 0.02, tmax] * lhs(3, 3000)
     XY_c_up = [0.0, 0.39, 0.0] + [1.1, 0.02, tmax] * lhs(3, 3000)

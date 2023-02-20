@@ -33,7 +33,7 @@ parser.add_argument('--neurons', help='number of neurons per layer', type=int, d
 parser.add_argument('--initpts', help='number of init points pper layer', type=int, default=200)
 parser.add_argument('--bcpts', help='number of boundary points', type=int, default=200)
 parser.add_argument('--colpts', help='number of collocation points', type=int, default=30000)
-parser.add_argument('--epochs', help='number of epochs', type=int, default=200)
+parser.add_argument('--epochs', help='number of epochs', type=int, default=50000)
 parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
 parser.add_argument('--act', help='activation function', type=str, default='tanh')
 parser.add_argument('--save', help='save model', type=bool, default=True)
@@ -91,9 +91,9 @@ def train(model, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_ou
     global iter
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    scheduler = StepLR(optimizer, step_size=1000, gamma=0.5)
+    scheduler = StepLR(optimizer, step_size=2000, gamma=0.5)
     print("Start training: ADAM")
-    for i in range(100):
+    for i in range(10000):
         closure_fn = partial(closure, model, optimizer, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out,
                              t_out, x_wall, y_wall, t_wall,
                              summary)
@@ -103,8 +103,8 @@ def train(model, x_f, y_f, t_f, x_in, y_in, t_in, u_in, v_in, x_out, y_out, t_ou
     print("Start training: L-BFGS")
     optimizer = torch.optim.LBFGS(model.parameters(),
                                   lr=1,
-                                  max_iter=epochs - 100,
-                                  max_eval=epochs - 100,
+                                  max_iter=epochs - 10000,
+                                  max_eval=epochs - 10000,
                                   history_size=100,
                                   # tolerance_grad=0.01 * np.finfo(float).eps,
                                   tolerance_change=0,
