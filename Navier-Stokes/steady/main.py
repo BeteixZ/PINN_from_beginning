@@ -22,7 +22,7 @@ from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR, ExponentialLR
 from torch.utils.tensorboard import SummaryWriter
 
 from functional import set_seed, init_weights, \
-    args_summary, postProcess, preprocess
+    args_summary, plot_t, postProcess, preprocess
 from model import Model, mse_f, mse_inlet, mse_outlet, mse_wall, uv
 from datagen import ptsgen
 
@@ -46,7 +46,7 @@ parser.add_argument('--bcpts', help='number of boundary points', type=int, defau
 parser.add_argument('--colpts', help='number of collocation points', type=int, default=30000)
 parser.add_argument('--epochs', help='number of epochs', type=int, default=30000)
 parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
-parser.add_argument('--act', help='activation function', type=str, default='relu')
+parser.add_argument('--act', help='activation function', type=str, default='mish')
 parser.add_argument('--save', help='save model', type=bool, default=True)
 
 
