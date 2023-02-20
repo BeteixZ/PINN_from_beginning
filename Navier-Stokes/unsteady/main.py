@@ -34,9 +34,9 @@ parser.add_argument('--neurons', help='number of neurons per layer', type=int, d
 parser.add_argument('--initpts', help='number of init points pper layer', type=int, default=200)
 parser.add_argument('--bcpts', help='number of boundary points', type=int, default=200)
 parser.add_argument('--colpts', help='number of collocation points', type=int, default=30000)
-parser.add_argument('--epochs', help='number of epochs', type=int, default=30000)
+parser.add_argument('--epochs', help='number of epochs', type=int, default=200)
 parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
-parser.add_argument('--act', help='activation function', type=str, default='relu')
+parser.add_argument('--act', help='activation function', type=str, default='tanh')
 parser.add_argument('--save', help='save model', type=bool, default=True)
 
 
@@ -91,7 +91,7 @@ def train(model, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1000, gamma=0.5)
     print("Start training: ADAM")
-    for i in range(5000):
+    for i in range(100):
         closure_fn = partial(closure, model, optimizer, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, x_wall, y_wall,t_wall,
                              summary)
         optimizer.step(closure_fn)
@@ -100,8 +100,8 @@ def train(model, x_f, y_f,t_f, x_in, y_in,t_in, u_in, v_in, x_out, y_out,t_out, 
     print("Start training: L-BFGS")
     optimizer = torch.optim.LBFGS(model.parameters(),
                                   lr=1,
-                                  max_iter=epochs - 5000,
-                                  max_eval=epochs - 5000,
+                                  max_iter=epochs - 100,
+                                  max_eval=epochs - 100,
                                   history_size=100,
                                   # tolerance_grad=0.01 * np.finfo(float).eps,
                                   tolerance_change=0,
@@ -160,8 +160,8 @@ def main():
     t_front = t_front.flatten()[:, None]
     x_front = x_front.flatten()[:, None]
     y_front = y_front.flatten()[:, None]
-
-    u_pred, v_pred, p_pred = model.predict(x_front, y_front, t_front)
+    model.eval()
+    u_pred, v_pred, p_pred = model(x_front, y_front, t_front)
     plt.plot(t_front, p_pred)
     plt.show()
 
