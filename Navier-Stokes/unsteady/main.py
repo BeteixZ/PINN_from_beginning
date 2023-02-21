@@ -157,7 +157,7 @@ def main():
     time_end = time.time()
     print('time cost', time_end - time_start, 's')
     if args.save:
-        torch.save(model.state_dict(), './models/' + 'l' + str(args.layer) + '_n' + str(args.neurons) + '_i' + str(
+        torch.save(model.state_dict(), './models/' + '22re100_l' + str(args.layer) + '_n' + str(args.neurons) + '_i' + str(
             args.initpts) + '_b' + str(args.bcpts) + '_col' + str(args.colpts / 1000) + '-' + str(
             args.method) + '-' + str(args.act) + '.pt')
         # Plot the pressure history on the leading point of cylinder

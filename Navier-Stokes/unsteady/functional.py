@@ -72,7 +72,7 @@ def postProcess(xmin, xmax, ymin, ymax, field, s=2, num=0):
     ''' num: Number of time step
     '''
     print(num)
-    [x_pred, y_pred, _, u_pred, v_pred, p_pred, amp_pred] = field
+    [x_pred, y_pred, _, u_pred, v_pred, p_pred] = field
 
     # fig, axs = plt.subplots(2)
     fig, ax = plt.subplots(nrows=4, figsize=(6, 10))
