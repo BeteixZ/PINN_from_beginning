@@ -75,7 +75,7 @@ def postProcess(xmin, xmax, ymin, ymax, field, s=2, num=0):
     [x_pred, y_pred, _, u_pred, v_pred, p_pred] = field
 
     # fig, axs = plt.subplots(2)
-    fig, ax = plt.subplots(nrows=4, figsize=(6, 10))
+    fig, ax = plt.subplots(nrows=3, figsize=(6, 8))
     # fig.subplots_adjust(hspace=0.2, wspace=0.2)
 
     cf = ax[0].scatter(x_pred, y_pred, c=u_pred, alpha=0.7, edgecolors='none', cmap='rainbow', marker='o', s=s, vmin=0, vmax=1.4)
@@ -105,15 +105,15 @@ def postProcess(xmin, xmax, ymin, ymax, field, s=2, num=0):
     ax[2].set_title('p predict')
     fig.colorbar(cf, ax=ax[2], fraction=0.046, pad=0.04)
 
-    cf = ax[3].scatter(x_pred, y_pred, c=amp_pred, alpha=0.7, edgecolors='none', cmap='rainbow', marker='o', s=s,
-                       vmin=-0.2, vmax=3)
-    ax[3].axis('square')
-    ax[3].set_xlim([xmin, xmax])
-    ax[3].set_ylim([ymin, ymax])
-    # cf.cmap.set_under('whitesmoke')
-    # cf.cmap.set_over('black')
-    ax[3].set_title('amp predict')
-    fig.colorbar(cf, ax=ax[3], fraction=0.046, pad=0.04)
+    # cf = ax[3].scatter(x_pred, y_pred, c=amp_pred, alpha=0.7, edgecolors='none', cmap='rainbow', marker='o', s=s,
+    #                    vmin=-0.2, vmax=3)
+    # ax[3].axis('square')
+    # ax[3].set_xlim([xmin, xmax])
+    # ax[3].set_ylim([ymin, ymax])
+    # # cf.cmap.set_under('whitesmoke')
+    # # cf.cmap.set_over('black')
+    # ax[3].set_title('amp predict')
+    # fig.colorbar(cf, ax=ax[3], fraction=0.046, pad=0.04)
 
     plt.suptitle('Time: '+str(num*0.01)+'s', fontsize=16)
 

@@ -185,10 +185,10 @@ def main():
 
     plt.plot(t_front, p_pred)
     plt.show()
-
+    xmax = 2.2
     # Output u, v, p at each time step
     N_t = 51
-    x_star = np.linspace(0, 1.1, 401)
+    x_star = np.linspace(0, xmax, 401)
     y_star = np.linspace(0, 0.41, 161)
     x_star, y_star = np.meshgrid(x_star, y_star)
     x_star = x_star.flatten()[:, None]
@@ -217,7 +217,7 @@ def main():
         field = [x_star, y_star, t_star, u_pred, v_pred, p_pred]
         amp_pred = (u_pred ** 2 + v_pred ** 2) ** 0.5
 
-        postProcess(xmin=0, xmax=1.1, ymin=0, ymax=0.41, field=field, s=2, num=i)
+        postProcess(xmin=0, xmax=xmax, ymin=0, ymax=0.41, field=field, s=2, num=i)
 
 
 if __name__ == "__main__":

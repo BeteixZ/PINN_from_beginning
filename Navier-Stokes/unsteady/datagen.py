@@ -40,7 +40,7 @@ def ptsgen(seed=42):
     INB = np.concatenate((x_inb, y_inb, t_inb, u_inb, v_inb), 1)
 
 
-    x_outb, y_outb, t_outb = CartGrid(xmin=1.1, xmax=1.1,
+    x_outb, y_outb, t_outb = CartGrid(xmin=xmax, xmax=xmax,
                                       ymin=0, ymax=0.41,
                                       tmin=0, tmax=tmax,
                                       num_x=1, num_y=81, num_t=41)
@@ -56,8 +56,8 @@ def ptsgen(seed=42):
     # Collocation point on domain, with refinement near the wall
     XY_c = lb + (ub - lb) * lhs(3, 80000)
     XY_c_refine = [0.0, 0.0, 0.0] + [0.4, 0.4, tmax] * lhs(3, 10000)
-    XY_c_lw = [0.0, 0.0, 0.0] + [1.1, 0.02, tmax] * lhs(3, 3000)
-    XY_c_up = [0.0, 0.39, 0.0] + [1.1, 0.02, tmax] * lhs(3, 3000)
+    XY_c_lw = [0.0, 0.0, 0.0] + [xmax, 0.02, tmax] * lhs(3, 3000)
+    XY_c_up = [0.0, 0.39, 0.0] + [xmax, 0.02, tmax] * lhs(3, 3000)
     XY_c = np.concatenate((XY_c, XY_c_refine, XY_c_lw, XY_c_up), 0)
     XY_c = DelSrcPT(XY_c, xc=0.2, yc=0.2, r=0.05)
     XY_c = np.concatenate((XY_c, WALL, OUTB, INB[:, 0:3]), 0)

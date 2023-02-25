@@ -18,19 +18,19 @@ from model import Model, mse_f, mse_inlet, mse_outlet, mse_wall, uv
 from datagen import ptsgen
 import pandas as pd
 
-
 device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
 parser = argparse.ArgumentParser()
 parser.add_argument('--layer', help='number of layers', type=int, default=8)
 parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=40)
 parser.add_argument('--act', help='activation function', type=str, default='tanh')
 
+
 def main():
     args = parser.parse_args()
     model = Model(args.layer, args.neurons, args.act).to(device)
-    model.load_state_dict(torch.load("./models/l8_n40_i200_b200_col30.0-lbfgs-tanh.pt"))
+    model.load_state_dict(torch.load("./models/22re100_l8_n40_i200_b200_col30.0-lbfgs-tanh.pt"))
     model.eval()
-    t_front = np.linspace(0, 0.5, 100)
+    t_front = np.linspace(0, 3., 100)
     x_front = np.zeros_like(t_front)
     x_front.fill(0.15)
     y_front = np.zeros_like(t_front)
@@ -45,7 +45,7 @@ def main():
 
     model.eval()
 
-    u_pred, v_pred, p_pred,_,_,_ = uv(model, x_frontT[:, 0], y_frontT[:, 0], t_frontT[:, 0])
+    u_pred, v_pred, p_pred, _, _, _ = uv(model, x_frontT[:, 0], y_frontT[:, 0], t_frontT[:, 0])
 
     u_pred = u_pred.data.cpu().numpy()
     v_pred = v_pred.data.cpu().numpy()
@@ -56,7 +56,7 @@ def main():
 
     # Output u, v, p at each time step
     N_t = 51
-    x_star = np.linspace(0, 1.1, 401)
+    x_star = np.linspace(0, 2.2, 401)
     y_star = np.linspace(0, 0.41, 161)
     x_star, y_star = np.meshgrid(x_star, y_star)
     x_star = x_star.flatten()[:, None]
@@ -86,15 +86,17 @@ def main():
         v_pred = v_pred.data.cpu().numpy()
         p_pred = p_pred.data.cpu().numpy()
         amp_pred = (u_pred ** 2 + v_pred ** 2) ** 0.5
-        field = [x_star, y_star, t_star, u_pred, v_pred, p_pred, amp_pred]
+        field = [x_star, y_star, t_star, u_pred, v_pred, p_pred]
 
-        fluent = pd.concat([fluent,pd.DataFrame(list(
+        fluent = pd.concat([fluent, pd.DataFrame(list(
             zip(x_star.flatten(), y_star.flatten(), t_star.flatten(), u_pred.flatten(), v_pred.flatten())))])
 
-        # postProcess(xmin=0, xmax=1.1, ymin=0, ymax=0.41, field=field, s=2, num=i)
-        # make_gif()
+        postProcess(xmin=0, xmax=1.1, ymin=0, ymax=0.41, field=field, s=2, num=i)
+
+    make_gif()
 
     fluent.to_csv('full.csv')
+
 
 if __name__ == '__main__':
     main()
