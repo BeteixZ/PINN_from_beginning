@@ -1,207 +1,186 @@
-"""
-This file contains the main code for PINN including adjustable
-1. Neural Layer
-2. Neurons
-3. Points (Init, Bc and Collo.)
-4. Epochs
-5. LR
-
-Every run writes to TensorBoard file.、
-"""
-
 import torch
-import matplotlib.pyplot as plt
+import torch.nn as nn
+import torch.optim as optim
 import numpy as np
-from functools import partial
-from torch.autograd import Variable
-import time
-import argparse
-from backpack import extensions, backpack, extend
+from matplotlib import pyplot as plt
 
-from torch.optim.lr_scheduler import StepLR, CosineAnnealingLR, ExponentialLR
-from torch.utils.tensorboard import SummaryWriter
+# Define the geometry
+x_min, x_max = 0, 0.41
+y_min, y_max = 0, 2.2
+r = 0.05
+xc, yc = 0.2, 0.2
 
-from functional import set_seed, init_weights, args_summary, plot, plot_with_points, make_gif, plot_slice, plot_error
-from model import Wave, mse_f, mse_0, mse_b, rel_error, mse_data, seq_model
-from datagen import initial_point, bc_point, collocation_point, mesh_point
-from cg import CGNOptimizer
+# Define the fluid properties
+rho = 1
+nu = 0.01
+Re = 100
 
-iter = 0
-count = 1
-seed = 42
-final_loss = 0
-final_relerr = 0
+# Define the inflow velocity
+def inflow(x, y):
+    return 4*1.5*y*(x_max-y)/x_max**2
 
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+# Define the PINN model
+class PINN(nn.Module):
+    def __init__(self):
+        super(PINN, self).__init__()
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--layer', help='number of layers', type=int, default=6)
-parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=50)
-parser.add_argument('--initpts', help='number of init points pper layer', type=int, default=50)
-parser.add_argument('--bcpts', help='number of boundary points', type=int, default=50)
-parser.add_argument('--colpts', help='number of collocation points', type=int, default=9000)
-parser.add_argument('--epochs', help='number of epochs', type=int, default=1000)
-parser.add_argument('--lr', help='learning rate', type=float, default=1)
-parser.add_argument('--method', help='optimization method', type=str, default='lbfgs')
+        # Define the neural network architecture
+        self.net_u = nn.Sequential(
+            nn.Linear(3, 20),
+            nn.Tanh(),
+            nn.Linear(20, 20),
+            nn.Tanh(),
+            nn.Linear(20, 20),
+            nn.Tanh(),
+            nn.Linear(20, 1)
+        )
+        self.net_v = nn.Sequential(
+            nn.Linear(3, 20),
+            nn.Tanh(),
+            nn.Linear(20, 20),
+            nn.Tanh(),
+            nn.Linear(20, 20),
+            nn.Tanh(),
+            nn.Linear(20, 1)
+        )
+        self.net_p = nn.Sequential(
+            nn.Linear(3, 20),
+            nn.Tanh(),
+            nn.Linear(20, 20),
+            nn.Tanh(),
+            nn.Linear(20, 20),
+            nn.Tanh(),
+            nn.Linear(20, 1)
+        )
 
+    def forward(self, x, y, t):
+        # Concatenate the input coordinates and time
+        input = torch.cat([x.unsqueeze(1), y.unsqueeze(1), t.unsqueeze(1)], dim=1)
 
-def closure(model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary):
-    """
-    The closure function to use L-BFGS optimization method.
-    """
-    global iter
-    global final_loss
-    global final_relerr
-    global count
+        # Compute the velocity and pressure fields
+        u = self.net_u(input)
+        v = self.net_v(input)
+        p = self.net_p(input)
+
+        return u, v, p
+
+    def loss(self, x, y, t, u, v, p):
+        # Compute the differential operators
+        u_x, u_y, v_x, v_y, p_x, p_y, p_xx, p_yy = self.compute_gradients(x, y, t, u, v, p)
+
+        # Compute the residual equations
+        eq1 = u_x + v_y
+        eq2 = u*u_x + v*u_y + p_x - 1/rho*(nu*(2*u_x - v_y) + u*(u_x + v_y))
+        eq3 = u*v_x + v*v_y + p_y - 1/rho*(nu*(2*v_y - u_x) + v*(u_x + v_y))
+
+        # Compute the boundary and initial conditions
+        bc_wall = torch.mean(torch.square(u[x==x_min]) + torch.square(v[x==x_min]))
+        bc_cylinder = torch.mean((u**2 + v**2)[((x-xc)**2 + (y-yc)**2)<r**2])
+        bc_inflow = torch.mean(torch.square(u[y==y_max] - inflow(x[y==y_max], y[y==y_max])))
+        bc_outflow = torch.mean(v[y==y_min])
+        ic = torch.mean()
+
+        # Define the coefficients for the loss function
+        lambda_eq = 1
+        lambda_bc_wall = 1e3
+        lambda_bc_cylinder = 1e3
+        lambda_bc_inflow = 1e3
+        lambda_bc_outflow = 1e3
+        lambda_ic = 1e3
+
+        # Compute the loss function
+        loss_eq = torch.mean(torch.square(eq1) + torch.square(eq2) + torch.square(eq3))
+        loss_bc_wall = torch.mean(torch.square(u[x == x_min]) + torch.square(v[x == x_min]))
+        loss_bc_cylinder = torch.mean((u ** 2 + v ** 2)[((x - xc) ** 2 + (y - yc) ** 2) < r ** 2])
+        loss_bc_inflow = torch.mean(torch.square(u[y == y_max] - inflow(x[y == y_max], y[y == y_max])))
+        loss_bc_outflow = torch.mean(v[y == y_min])
+        loss_ic = torch.mean(torch.square(u[t == 0]) + torch.square(v[t == 0]) + torch.square(p[t == 0]))
+
+        loss = lambda_eq * loss_eq + \
+               lambda_bc_wall * loss_bc_wall + \
+               lambda_bc_cylinder * loss_bc_cylinder + \
+               lambda_bc_inflow * loss_bc_inflow + \
+               lambda_bc_outflow * loss_bc_outflow + \
+               lambda_ic * loss_ic
+
+        return loss
+
+    def compute_gradients(self, x, y, t, u, v, p):
+        # Compute the gradients of velocity and pressure
+        u_grad = torch.autograd.grad(u, [x, y], create_graph=True, grad_outputs=torch.ones_like(u))[0]
+        u_x = u_grad[:, 0]
+        u_y = u_grad[:, 1]
+        v_grad = torch.autograd.grad(v, [x, y], create_graph=True, grad_outputs=torch.ones_like(v))[0]
+        v_x = v_grad[:, 0]
+        v_y = v_grad[:, 1]
+        p_grad = torch.autograd.grad(p, [x, y], create_graph=True, grad_outputs=torch.ones_like(p))[0]
+        p_x = p_grad[:, 0]
+        p_y = p_grad[:, 1]
+
+        # Compute the second-order derivatives of pressure
+        p_xx = torch.autograd.grad(p_x, x, create_graph=True, grad_outputs=torch.ones_like(p_x))[0]
+        p_yy = torch.autograd.grad(p_y, y, create_graph=True, grad_outputs=torch.ones_like(p_y))[0]
+
+        return u_x, u_y, v_x, v_y, p_x, p_y, p_xx, p_yy
+
+# Define the training data
+N = 300
+x = torch.linspace(x_min, x_max, N)
+y = torch.linspace(y_min, y_max, N)
+t = torch.linspace(0, 1, N)
+X, Y, T = torch.meshgrid(x, y, t)
+
+# Convert the training data to tensors and reshape
+X = torch.flatten(X).unsqueeze(1)
+Y = torch.flatten(Y).unsqueeze(1)
+T = torch.flatten(T).unsqueeze(1)
+
+# Define the PINN model and optimizer
+model = PINN()
+optimizer = optim.Adam(model.parameters())
+
+# Train the PINN model
+for epoch in range(10000):
+    # Zero the gradients
     optimizer.zero_grad()
-    # evaluating the MSE for the PDE
-    msef = mse_f(model, x_f, t_f, u_f)
-    mse0 = mse_0(model, x_ic, t_ic, u_ic)
-    mseb = mse_b(model, l_t_bc, u_t_bc)
-    loss = msef + mse0 + mseb
-    pt_x, pt_t, pt_u = mesh_point()
-    pt_x = Variable(torch.from_numpy(pt_x).float(), requires_grad=False).to(device)
-    pt_t = Variable(torch.from_numpy(pt_t).float(), requires_grad=False).to(device)
-    relerror = rel_error(model, pt_x, pt_t, pt_u)
-    summary.add_scalar('Loss', loss, iter)
-    summary.add_scalars('MSE', {'MSE_f': msef, 'MSE_init': mse0, 'MSE_bc': mseb}, iter)
-    summary.add_scalar('MSE_relerror', relerror, iter)
-    loss.backward(retain_graph=True)
-    iter += 1
-    final_loss = loss
-    final_relerr = relerror
-    if iter % 50 == 0:
-        print(f"[Iter: {iter}] loss: {loss.item()}, msef:{msef}, mse0:{mse0}, mseb:{mseb}, relerr:{relerror}")
-    slice = np.concatenate((np.arange(0,10,1), np.arange(10,100,10), np.arange(100,1100,100)))
-    if iter in slice:
-        fig = plot(model, device, iter)
-        fig.savefig("./outputpics/" + 'pic-'+str(count) + '.png')
-        plt.close('all')
-        count+=1
-    return loss
 
-def direct(model, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary, max_iter):
-    global iter
-    global final_loss
-    global final_relerr
-    global count
-    model = extend(model)
-    optimizer = CGNOptimizer(model.parameters(), extensions.GGNMP(), lr=1, damping=0.01,
-                             maxiter=0.5 * np.finfo(float).eps, atol=0.5 * np.finfo(float).eps)
-    loss_f = torch.nn.MSELoss()
-    loss_f = extend(loss_f)
-    for i in range(1,max_iter+1):
-        optimizer.zero_grad()
-        # evaluating the MSE for the PDE
-        u_pred, u_exact = mse_data(model, x_f, t_f, u_f,x_ic, t_ic, u_ic, l_t_bc, u_t_bc)
-        loss = loss_f(u_pred, u_exact)
-        pt_x, pt_t, pt_u = mesh_point()
-        pt_x = Variable(torch.from_numpy(pt_x).float(), requires_grad=False).to(device)
-        pt_t = Variable(torch.from_numpy(pt_t).float(), requires_grad=False).to(device)
-        msef = mse_f(model, x_f, t_f, u_f)
-        mse0 = mse_0(model, x_ic, t_ic, u_ic)
-        mseb = mse_b(model, l_t_bc, u_t_bc)
-        total_loss = msef + mse0 + mseb
-        relerror = rel_error(model, pt_x, pt_t, pt_u)
-        summary.add_scalar('Loss', total_loss, iter)
-        summary.add_scalars('MSE', {'MSE_f': msef, 'MSE_init': mse0, 'MSE_bc': mseb}, iter)
-        summary.add_scalar('MSE_relerror', relerror, iter)
-        with backpack(optimizer.bp_extension):
-            loss.backward()
-        optimizer.step()
-        iter += 1
-        final_loss = loss
-        final_relerr = relerror
-        if iter % 50 == 0:
-            print(f"[Iter: {iter}] loss: {loss.item()}, msef:{msef}, mse0:{mse0}, mseb:{mseb}, relerr:{relerror}")
-        slice = np.concatenate((np.arange(0,10,1), np.arange(10,100,10), np.arange(100,1100,100)))
-        if iter in slice:
-            fig = plot(model, device, iter)
-            fig.savefig("./outputpics/" + 'pic-'+str(count) + '.png')
-            plt.close('all')
-            count+=1
+    # Forward pass
+    u, v, p = model(X, Y, T)
 
-def train(model, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, epochs, lr, method, summary):
-    # Initialize the optimizer
+    # Compute the loss
+    loss = model.loss(X, Y, T , u, v, p)
 
-    if method == 'lbfgs':
-        optimizer = torch.optim.LBFGS(model.parameters(),
-                                    lr=lr,
-                                    max_iter=epochs,
-                                    max_eval=epochs,
-                                    history_size=100,
-                                    tolerance_grad=0.5 * np.finfo(float).eps,
-                                    tolerance_change=0.5 * np.finfo(float).eps,
-                                    line_search_fn="strong_wolfe")
-        closure_fn = partial(closure, model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary)
-        optimizer.step(closure_fn)
-    if method == 'adam':
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.02)
-        schedule2 = ExponentialLR(optimizer, gamma= 0.9995)
-        for i in range(epochs):
-            closure_fn = partial(closure, model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary)
-            optimizer.step(closure_fn)
-            schedule2.step()
+# Backward pass
+loss.backward()
 
-    if method == 'sgd':
-        optimizer = torch.optim.SGD(model.parameters(), lr=0.0001)
-        schedule2 =  ExponentialLR(optimizer, gamma= 0.999)
-        for i in range(epochs):
-            closure_fn = partial(closure, model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary)
-            optimizer.step(closure_fn)
-            schedule2.step()
+# Update the weights
+optimizer.step()
 
-    if method == 'ada':
-        optimizer = torch.optim.Adagrad(model.parameters(), lr=0.02)
-        schedule2 =  ExponentialLR(optimizer, gamma= 0.999)
-        for i in range(epochs):
-            closure_fn = partial(closure, model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary)
-            optimizer.step(closure_fn)
-            schedule2.step()
+# Print the loss
+if epoch % 100 == 0:
+    print('Epoch [{}/{}], Loss: {:.4e}'.format(epoch, 10000, loss.item()))
 
-    if method == 'rmsprop':
-        optimizer = torch.optim.RMSprop(model.parameters(), lr=0.002)
-        schedule2 =  ExponentialLR(optimizer, gamma= 0.995)
-        for i in range(epochs):
-            closure_fn = partial(closure, model, optimizer, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary)
-            optimizer.step(closure_fn)
-            schedule2.step()
+# Extract the solution
+u, v, p = model(X, Y, T)
 
-    if method == 'cg':
-        model = seq_model().to(device)
+# Reshape the solution
+u = u.reshape(N, N, N).detach().numpy()
+v = v.reshape(N, N, N).detach().numpy()
+p = p.reshape(N, N, N).detach().numpy()
 
-        direct(model, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, summary, epochs)
+# Plot the solution
+fig, axs = plt.subplots(1, 3, figsize=(12, 4))
+axs[0].contourf(x, y, u[:, :, 0], levels=50, cmap='jet')
+axs[0].set_title('u')
+axs[0].set_xlabel('x')
+axs[0].set_ylabel('y')
+axs[1].contourf(x, y, v[:, :, 0], levels=50, cmap='jet')
+axs[1].set_title('v')
+axs[1].set_xlabel('x')
+axs[1].set_ylabel('y')
+axs[2].contourf(x, y, p[:, :, 0], levels=50, cmap='jet')
+axs[2].set_title('p')
+axs[2].set_xlabel('x')
+axs[2].set_ylabel('y')
+plt.show()
 
-
-def main():
-    set_seed(seed)
-    args = parser.parse_args()
-    args_summary(args)
-    summary = SummaryWriter(comment='NN' + 'l'+str(args.layer)+'_n'+str(args.neurons)+'_i' + str(args.initpts) + '_b' + str(args.bcpts)+'_col'+str(args.colpts)+'-'+str(args.method))
-    time_start = time.time()
-    model = Wave(args.layer, args.neurons).to(device)
-    model = extend(model)
-    model.apply(init_weights)
-    x_ic, t_ic, u_ic = initial_point(args.initpts, seed)
-    l_t_bc, u_t_bc = bc_point(args.bcpts, seed)
-    x_f, t_f, u_f = collocation_point(args.colpts, seed)
-    x_ic = Variable(torch.from_numpy(x_ic.astype(np.float32)), requires_grad=True).to(device)
-    t_ic = Variable(torch.from_numpy(t_ic.astype(np.float32)), requires_grad=True).to(device)
-    u_ic = Variable(torch.from_numpy(u_ic.astype(np.float32)), requires_grad=True).to(device)
-    l_t_bc = Variable(torch.from_numpy(l_t_bc.astype(np.float32)), requires_grad=True).to(device)
-    u_t_bc = Variable(torch.from_numpy(u_t_bc.astype(np.float32)), requires_grad=False).to(device)
-    x_f = Variable(torch.from_numpy(x_f.astype(np.float32)), requires_grad=True).to(device)
-    t_f = Variable(torch.from_numpy(t_f.astype(np.float32)), requires_grad=True).to(device)
-    u_f = Variable(torch.from_numpy(u_f.astype(np.float32)), requires_grad=True).to(device)
-    train(model, x_f, t_f, u_f, x_ic, t_ic, u_ic, l_t_bc, u_t_bc, args.epochs, args.lr, args.method, summary)
-    summary.add_hparams(vars(args), {'loss':final_loss, 'rel_error':final_relerr*100})
-    time_end = time.time()
-    print('time cost', time_end - time_start, 's')
-    make_gif()
-    plot_slice(model, summary, device)
-    plot_error(model, summary, device)
-    plot_with_points(model, t_ic, x_ic, l_t_bc, u_t_bc, summary, device)
-
-
-if __name__ == "__main__":
-    main()

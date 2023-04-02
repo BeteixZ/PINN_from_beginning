@@ -60,7 +60,7 @@ def f(model, x_f, y_f, t_f):
     """
     This function evaluates the PDE at collocation points.
     """
-    u = model(torch.stack((x_f, y_f, t_f), axis=1))[:, 0]  # Concatenates a seq of tensors along a new dimension
+    u = model(torch.stack((x_f, y_f, t_f), dim=1))[:, 0]  # Concatenates a seq of tensors along a new dimension
     u_t = derivative(u, t_f, order=1)
     u_xx = derivative(u, x_f, order=2)
     u_yy = derivative(u, y_f, order=2)
@@ -82,7 +82,7 @@ def mse_0(model, x_ic, y_ic, t_ic):
     u_0 is the real values
     here u_ic should be sin(2pi x) sin(2pi y) defined in datagen
     """
-    u = model(torch.stack((x_ic, y_ic , t_ic), axis=1))[:, 0]
+    u = model(torch.stack((x_ic, y_ic , t_ic), dim=1))[:, 0]
     u_0 = sin(2*pi*x_ic)*sin(2*pi*y_ic)
     return ((u - u_0) ** 2).mean()
 
@@ -95,15 +95,15 @@ def mse_b(model, x_bc, y_bc, t_bc):
     x_bc_diri.requires_grad = True
     y_bc_diri = torch.ones_like(x_bc)
     y_bc_diri.requires_grad = True
-    u_bc_diri = torch.cat((model(torch.stack((x_bc_diri, y_bc, t_bc), axis=1))[:, 0],
-                           model(torch.stack((x_bc, y_bc_diri, t_bc), axis=1))[:, 0]))
+    u_bc_diri = torch.cat((model(torch.stack((x_bc_diri, y_bc, t_bc), dim=1))[:, 0],
+                           model(torch.stack((x_bc, y_bc_diri, t_bc), dim=1))[:, 0]))
     mse_dirichlet = (u_bc_diri ** 2).mean()
     x_bc_nuem = torch.ones_like(y_bc)
     x_bc_nuem.requires_grad = True
     y_bc_nuem = torch.zeros_like(x_bc)
     y_bc_nuem.requires_grad = True
-    u_bc_nuem_x = model(torch.stack((x_bc_nuem, y_bc, t_bc), axis=1))[:, 0]
-    u_bc_nuem_y = model(torch.stack((x_bc, y_bc_nuem, t_bc), axis=1))[:, 0]
+    u_bc_nuem_x = model(torch.stack((x_bc_nuem, y_bc, t_bc), dim=1))[:, 0]
+    u_bc_nuem_y = model(torch.stack((x_bc, y_bc_nuem, t_bc), dim=1))[:, 0]
     u_x = derivative(u_bc_nuem_x, x_bc_nuem, 1)
     u_y = derivative(u_bc_nuem_y, y_bc_nuem, 1)
     u_x_0 = 2 * pi * exp(-t_bc) * sin(2 * pi * y_bc)
