@@ -8,9 +8,9 @@ from GridBenchMark_Heat_Eq.ContinueModel.model import HeatEqModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--layer', help='number of layers', type=int, default=4)
-parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=50)
-parser.add_argument('--AEpoch', help='Number of ADAM epochs', type=int, default=2500)
-parser.add_argument('--LEpoch', help='Number of LBFGS epochs', type=int, default=2500)
+parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=20)
+parser.add_argument('--AEpoch', help='Number of ADAM epochs', type=int, default=2000)
+parser.add_argument('--LEpoch', help='Number of LBFGS epochs', type=int, default=2000)
 parser.add_argument('--act', help='Activation function', type=str, default='tanh')
 parser.add_argument('--save', help='save models', type=bool, default=True)
 parser.add_argument('--record', help='Make Tensorboard record', type=bool, default=True)
@@ -24,7 +24,7 @@ def main():
     setSeed(args.seed)
 
     lowerBound = [0, 0, 0]
-    upperBound = [2.2, 0.41, 0.5]
+    upperBound = [1, 1, 1]
 
 
     bound = [lowerBound, upperBound]
@@ -32,10 +32,10 @@ def main():
     iterPara = [args.AEpoch, args.LEpoch]
 
     pts = dataGen(24, 24, 24, True, 42)
-    model = HeatEqModel(nnPara, iterPara,pts, bound, "ADAM", args.save, args.record, "12x12x12_nort", args.seed)
+    model = HeatEqModel(nnPara, iterPara,pts, bound, "ADAM", args.save, args.record, "24x24x24_nort", args.seed)
 
 
-    # models.loadFCModel("./models/dortmund-2d-2-unsteay-models.pt")
+    #model.loadFCModel("./models/4000-24x24x24_nort.pt")
     model.train()
     model.inference()
 

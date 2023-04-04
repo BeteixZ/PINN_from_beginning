@@ -15,6 +15,8 @@ from torch import sin, exp
 from numpy import pi
 from torch.optim.lr_scheduler import StepLR, ExponentialLR, SequentialLR
 from torch.utils.tensorboard import SummaryWriter
+
+from GridBenchMark_Heat_Eq.ContinueModel.lion import Lion
 from functional import derivative, initWeights, setSeed
 
 
@@ -42,7 +44,7 @@ class FCModel(nn.Module):
 class HeatEqModel:
     def __init__(self,nnPara, iterPara, pts= None, bound= None, optimizer= "ADAM", save= None, record= None, record_name= None, randSeed= 127):
         setSeed(randSeed)
-        self.device = "cuda:0"  # force to use GPU
+        self.device = "cpu"  # force to use GPU
         if pts != None:
             self.ptsCl = pts[0]
             self.ptsBc =  pts[1]
@@ -183,7 +185,7 @@ class HeatEqModel:
 
     def inference(self):  # not change too much
         self.model.eval()
-
+        # This should be a mesh grid rather than the original points
         ptsAll = np.concatenate((self.ptsCl, self.ptsBc[0], self.ptsBc[1], self.ptsBc[2], self.ptsBc[3], self.ptsIc),
                            axis=0).astype(np.float32)
         solution = self.model(Variable(torch.from_numpy(ptsAll), requires_grad=False).to(self.device))[:,0].detach().cpu().numpy()

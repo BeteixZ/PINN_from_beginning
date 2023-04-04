@@ -6,12 +6,11 @@ from functional import setSeed
 
 def dataGen(numX, numY, numT, grid=True, randSeed=42):
     lowB = [0,0,0]
-    upperB = [1,1,0.5]
-    upperBA = [1,1,0.51]
+    upperB = [1,1,1]
 
     setSeed(randSeed)
 
-    ptsCL = None
+    ptsAll = None
     ptsBD = None
     ptsIC = None
 

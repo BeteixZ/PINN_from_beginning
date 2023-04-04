@@ -1,5 +1,7 @@
 import os
 
+import numpy as np
+
 from GridBenchMark_Heat_Eq.ContinueModel.functional import setSeed
 
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
@@ -16,8 +18,8 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--layer', help='number of layers', type=int, default=4)
-parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=50)
-parser.add_argument('--AEpoch', help='Number of ADAM epochs', type=int, default=1000)
+parser.add_argument('--neurons', help='number of neurons per layer', type=int, default=20)
+parser.add_argument('--AEpoch', help='Number of ADAM epochs', type=int, default=2000)
 parser.add_argument('--LEpoch', help='Number of LBFGS epochs', type=int, default=2000)
 parser.add_argument('--act', help='Activation function', type=str, default='tanh')
 parser.add_argument('--save', help='save models', type=bool, default=True)
@@ -33,12 +35,15 @@ iterPara = [args.AEpoch, args.LEpoch]
 
 #pts = dataGen(24, 24, 24, True, 42)
 model = HeatEqModel(iterPara = iterPara, nnPara= nnPara)
-model.loadFCModel('./models/5000-12x12x12_nort.pt')
+model.loadFCModel('./models/4000-24x24x24_nort.pt')
 model.model.eval()
+tEnd = 1
 
-
-for time in [0, 0.1, 0.2, 0.3, 0.4, 0.5]:
+q=24
+tmp = np.float32(np.loadtxt('../discreateModel/IRKWeights/Butcher_IRK%d.txt' % (q), ndmin=2))
+IRKTimesExtended = np.append(tmp[q ** 2 + q:] * tEnd, tEnd).reshape(q + 1, 1).astype(np.float32)
+for i,time in enumerate(IRKTimesExtended):
     colorbar = True
-    fig = plot_t_error(model.model, model.device, 3000, time, colorbar)
-    fig.savefig("./outputpics/" + 'final_error_pic-' + str(time) + '.png')
+    fig = plot_t_error(model.model, model.device, 4000, time, colorbar, 24)
+    fig.savefig("./outputpics/" + 'final_error_pic-' + str(i) + '.png')
     plt.close('all')

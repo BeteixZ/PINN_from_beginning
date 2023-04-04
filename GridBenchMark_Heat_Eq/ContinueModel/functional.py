@@ -75,9 +75,9 @@ def plot_t(model, device, iter, t_time, colorbar):
     return fig
 
 
-def plot_t_error(model, device, iter, t_time, colorbar):
-    x = np.arange(0, 1, 0.005)
-    y = np.arange(0, 1, 0.005)
+def plot_t_error(model, device, iter, t_time, colorbar,step):
+    x = np.arange(0, 1, 1/step)
+    y = np.arange(0, 1, 1/step)
     ms_x, ms_y = np.meshgrid(x, y)
     # Just because meshgrid is used, we need to do the following adjustment
     x = np.ravel(ms_x).reshape(-1, 1)
@@ -95,8 +95,8 @@ def plot_t_error(model, device, iter, t_time, colorbar):
 
     fig = plt.figure()
     plt.gca().set_aspect('equal')
-    pc = plt.pcolormesh(ms_x, ms_y, ms_u-real_u, cmap=plt.get_cmap("rainbow"), linewidth=0, antialiased= True, )
-    pc.set_clim(-0.01, 0.01)
+    pc = plt.pcolormesh(ms_x, ms_y, abs(ms_u-real_u), cmap=plt.get_cmap("rainbow"), linewidth=0, antialiased= True, )
+    pc.set_clim(-0.03, 0.03)
     plt.title('Iteration:'+str(iter)+'  Time:'+str(t_time))
     if colorbar:
         fig.colorbar(pc)

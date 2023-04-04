@@ -41,7 +41,7 @@ class HeatEqModel:
     def __init__(self, nnPara, iterPara, q, pts=None, bound=None, tPara=None, save=None, record=None, record_name=None,
                  randSeed=127):
         setSeed(randSeed)
-        self.device = "cuda:0"  # force to use GPU
+        self.device = "cpu"  # force to use GPU
         self.ptsCl = pts[0]
         self.ptsBc = pts[1]
         self.lowB = bound[0]
@@ -138,36 +138,36 @@ class HeatEqModel:
                     self.l2l1(U4_y - (2 * pi * exp(-self.IRKTimesExtended) * sin(2 * pi * colX4)).T))
 
     def __closure(self):
-        with torch.profiler.profile(
-                activities=[
-                    torch.profiler.ProfilerActivity.CPU,
-                    torch.profiler.ProfilerActivity.CUDA,
-                ]
-        ) as p:
-            self.avgEpochTime = time.time()
-            self.nowIter += 1
-            self.optimizer.zero_grad()
-            mseCl = self.netU0()
-            mseBd = self.netU1()
-            loss = mseCl + 1 * mseBd
-            self.nowLoss = loss.item()
-            loss.backward()
-            if self.record:
-                self.writer.add_scalar('Loss', loss.detach().cpu().numpy(), self.nowIter)
-                self.writer.add_scalars('MSE', {'MSE_F': mseCl.detach().cpu().numpy(),
-                                                'MSE_B': mseBd.detach().cpu().numpy()}, self.nowIter)
+        #with torch.profiler.profile(
+        #        activities=[
+        #            torch.profiler.ProfilerActivity.CPU,
+        #            torch.profiler.ProfilerActivity.CUDA,
+        #        ]
+        #) as p:
+        self.avgEpochTime = time.time()
+        self.nowIter += 1
+        self.optimizer.zero_grad()
+        mseCl = self.netU0()
+        mseBd = self.netU1()
+        loss = mseCl + 1 * mseBd
+        self.nowLoss = loss.item()
+        loss.backward()
+        if self.record:
+            self.writer.add_scalar('Loss', loss.detach().cpu().numpy(), self.nowIter)
+            self.writer.add_scalars('MSE', {'MSE_F': mseCl.detach().cpu().numpy(),
+                                            'MSE_B': mseBd.detach().cpu().numpy()}, self.nowIter)
 
-            if self.nowIter % 100 == 0:
+        if self.nowIter % 100 == 0:
                 # self.__ptsTune()
-                print("Iter: {}, AvgT: {:.2f}, loss: {:.6f}, F: {:.6f}, BD: {:.6f}"
+            print("Iter: {}, AvgT: {:.2f}, loss: {:.6f}, F: {:.6f}, BD: {:.6f}"
                       .format(self.nowIter,
                               time.time() - self.avgEpochTime,
                               loss.item(),
                               mseCl,
                               mseBd))
 
-        print(p.key_averages().table(
-                    sort_by="self_cuda_time_total", row_limit=-1))
+        #print(p.key_averages().table(
+        #            sort_by="self_cuda_time_total", row_limit=-1))
 
         return loss
 
